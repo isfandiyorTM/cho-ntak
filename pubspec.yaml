@@ -1,0 +1,60 @@
+name: expense_tracker
+description: "Cho'ntak - Cho'ntagingizga qarab ish qiling"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  local_auth: ^2.1.0
+
+  # State management
+  flutter_bloc: ^8.1.5
+  equatable: ^2.0.5
+
+  # Database
+  sqflite: ^2.3.2
+  sqflite_common_ffi: ^2.3.3
+  path: ^1.9.0
+
+  # Charts
+  fl_chart: ^0.68.0
+
+  # UI
+  google_fonts: ^6.2.1
+  iconsax: ^0.0.8
+  flutter_svg: ^2.0.10+1
+
+  # Utils
+  intl: ^0.19.0
+  uuid: ^4.4.0
+  shared_preferences: ^2.2.3
+  provider: ^6.1.2
+
+  # Notifications
+  flutter_local_notifications: ^17.2.3
+  timezone: ^0.9.4
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+  flutter_launcher_icons: ^0.13.1
+
+# ── App icon ─────────────────────────────────────────────────────────────────
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon/app_icon.png"
+  min_sdk_android: 21
+  adaptive_icon_background: "#0A0A0A"
+  adaptive_icon_foreground: "assets/icon/app_icon.png"
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/icon/

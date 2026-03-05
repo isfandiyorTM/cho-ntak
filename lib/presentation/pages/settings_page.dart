@@ -1,0 +1,448 @@
+import 'package:flutter/material.dart';
+import 'package:iconsax/iconsax.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../core/constants/app_constants.dart';
+import '../../core/theme/app_theme.dart';
+import '../../core/i18n/language_provider.dart';
+import '../../core/i18n/translations.dart';
+import '../../core/services/notification_service.dart';
+import '../../core/services/app_lock_service.dart';
+import 'lock_screen.dart';
+
+class SettingsPage extends StatefulWidget {
+  final bool isDark;
+  final String currency;
+  final ValueChanged<bool> onThemeChanged;
+  final ValueChanged<String> onCurrencyChanged;
+
+  const SettingsPage({
+    super.key,
+    required this.isDark,
+    required this.currency,
+    required this.onThemeChanged,
+    required this.onCurrencyChanged,
+  });
+
+  @override
+  State<SettingsPage> createState() => _SettingsPageState();
+}
+
+class _SettingsPageState extends State<SettingsPage> {
+  late String _selectedCurrency;
+  bool _notifsEnabled  = true;
+  int  _notifHour      = 9;
+  int  _notifMinute    = 0;
+  bool _lockEnabled    = false;
+  bool _bioEnabled     = false;
+  bool _bioAvailable   = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedCurrency = widget.currency;
+    _loadNotifPrefs();
+  }
+
+  Future<void> _loadNotifPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    final bioAvail = await AppLockService.instance.isBiometricAvailable;
+    final lockOn   = await AppLockService.instance.isEnabled;
+    final bioOn    = await AppLockService.instance.useBiometric;
+    setState(() {
+      _notifsEnabled = prefs.getBool('notif_enabled') ?? true;
+      _notifHour     = prefs.getInt('notif_hour')     ?? 9;
+      _notifMinute   = prefs.getInt('notif_minute')   ?? 0;
+      _lockEnabled   = lockOn;
+      _bioEnabled    = bioOn;
+      _bioAvailable  = bioAvail;
+    });
+  }
+
+  Future<void> _saveNotifPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('notif_enabled', _notifsEnabled);
+    await prefs.setInt('notif_hour',     _notifHour);
+    await prefs.setInt('notif_minute',   _notifMinute);
+  }
+
+  String get _timeLabel {
+    final h = _notifHour.toString().padLeft(2, '0');
+    final m = _notifMinute.toString().padLeft(2, '0');
+    return '$h:$m';
+  }
+
+  Future<void> _pickTime() async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay(hour: _notifHour, minute: _notifMinute),
+      builder: (ctx, child) => Theme(
+        data: Theme.of(ctx).copyWith(
+          colorScheme: const ColorScheme.dark(primary: AppColors.gold),
+        ),
+        child: child!,
+      ),
+    );
+    if (picked == null) return;
+
+    setState(() {
+      _notifHour   = picked.hour;
+      _notifMinute = picked.minute;
+    });
+    await _saveNotifPrefs();
+
+    // Reschedule with new time
+    await NotificationService.instance.scheduleDailyNotification(
+      balance: 0, totalExpense: 0, budgetLimit: 0,
+      currencySymbol: _currencySymbol,
+      hour: _notifHour, minute: _notifMinute,
+    );
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Ertalabki xabarnoma $_timeLabel ga o'rnatildi ✅"),
+          backgroundColor: AppColors.gold,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  Future<void> _sendTestNotification() async {
+    await NotificationService.instance.sendTestNotification(
+      balance: 150000,
+      totalExpense: 50000,
+      budgetLimit: 200000,
+      currencySymbol: _currencySymbol,
+    );
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Test xabarnoma yuborildi! 🔔'),
+          backgroundColor: AppColors.gold,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  String get _currencySymbol {
+    return AppConstants.currencies.firstWhere(
+          (c) => c['code'] == _selectedCurrency,
+      orElse: () => AppConstants.currencies.first,
+    )['symbol'] ??
+        "so'm";
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final langProvider = context.watch<LanguageProvider>();
+    final t = langProvider.t;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(t.settings),
+        automaticallyImplyLeading: false,
+      ),
+      body: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+
+            // ── Language ──────────────────────────────────
+            _Section(t.languages, [
+              _LangTile(flag: '🇺🇿', label: "O'zbek",
+                  selected: langProvider.language == AppLanguage.uz,
+                  onTap: () => langProvider.setLanguage(AppLanguage.uz)),
+              _LangTile(flag: '🇷🇺', label: 'Русский',
+                  selected: langProvider.language == AppLanguage.ru,
+                  onTap: () => langProvider.setLanguage(AppLanguage.ru)),
+              _LangTile(flag: '🇬🇧', label: 'English',
+                  selected: langProvider.language == AppLanguage.en,
+                  onTap: () => langProvider.setLanguage(AppLanguage.en)),
+            ]),
+            const SizedBox(height: 20),
+
+            // ── Appearance ────────────────────────────────
+            _Section(t.appearance, [
+              _SettingsTile(
+                icon: Iconsax.moon,
+                iconColor: AppColors.gold,
+                title: t.darkMode,
+                trailing: Switch(
+                  value: widget.isDark,
+                  onChanged: widget.onThemeChanged,
+                  activeColor: AppColors.gold,
+                ),
+              ),
+            ]),
+            const SizedBox(height: 20),
+
+            // ── Notifications ─────────────────────────────
+            _Section(t.notifications, [
+              // Enable / disable toggle
+              _SettingsTile(
+                icon: Iconsax.notification,
+                iconColor: _notifsEnabled ? AppColors.gold : Colors.grey,
+                title: t.notifications,
+                subtitle: _notifsEnabled ? t.notifOn : t.notifOff,
+                trailing: Switch(
+                  value: _notifsEnabled,
+                  onChanged: (val) async {
+                    setState(() => _notifsEnabled = val);
+                    await _saveNotifPrefs();
+                    if (!val) await NotificationService.instance.cancelAll();
+                  },
+                  activeColor: AppColors.gold,
+                ),
+              ),
+              // Morning time picker
+              if (_notifsEnabled) ...[
+                _SettingsTile(
+                  icon: Iconsax.clock,
+                  iconColor: AppColors.gold,
+                  title: t.morningNotif,
+                  subtitle: _timeLabel,
+                  trailing: const Icon(Iconsax.arrow_right_3,
+                      size: 16, color: AppColors.gold),
+                  onTap: _pickTime,
+                ),
+                // Test button
+                _SettingsTile(
+                  icon: Iconsax.notification_bing,
+                  iconColor: AppColors.gold,
+                  title: t.testNotif,
+                  subtitle: t.testNotifSub,
+                  onTap: _sendTestNotification,
+                ),
+              ],
+            ]),
+            const SizedBox(height: 20),
+
+            // ── App Lock ──────────────────────────────────
+            _Section(t.appLock, [
+              _SettingsTile(
+                icon: Iconsax.lock,
+                iconColor: _lockEnabled ? AppColors.gold : Colors.grey,
+                title: t.appLockTitle,
+                subtitle: _lockEnabled ? t.lockOn : t.lockOff,
+                trailing: Switch(
+                  value: _lockEnabled,
+                  onChanged: (val) async {
+                    if (val) {
+                      // Setup PIN
+                      await Navigator.push(context, MaterialPageRoute(
+                        builder: (_) => LockScreen(
+                          isSetup: true,
+                          onUnlocked: () => Navigator.pop(context),
+                        ),
+                      ));
+                      final enabled = await AppLockService.instance.isEnabled;
+                      setState(() => _lockEnabled = enabled);
+                    } else {
+                      await AppLockService.instance.disableAll();
+                      setState(() { _lockEnabled = false; _bioEnabled = false; });
+                    }
+                  },
+                  activeColor: AppColors.gold,
+                ),
+              ),
+              if (_lockEnabled && _bioAvailable)
+                _SettingsTile(
+                  icon: Icons.fingerprint,
+                  iconColor: _bioEnabled ? AppColors.gold : Colors.grey,
+                  title: t.biometric,
+                  subtitle: t.biometricSub,
+                  trailing: Switch(
+                    value: _bioEnabled,
+                    onChanged: (val) async {
+                      await AppLockService.instance.setUseBiometric(val);
+                      setState(() => _bioEnabled = val);
+                    },
+                    activeColor: AppColors.gold,
+                  ),
+                ),
+              if (_lockEnabled)
+                _SettingsTile(
+                  icon: Iconsax.refresh,
+                  iconColor: AppColors.gold,
+                  title: t.changePin,
+                  onTap: () async {
+                    await AppLockService.instance.disableAll();
+                    if (!mounted) return;
+                    await Navigator.push(context, MaterialPageRoute(
+                      builder: (_) => LockScreen(
+                        isSetup: true,
+                        onUnlocked: () => Navigator.pop(context),
+                      ),
+                    ));
+                    final enabled = await AppLockService.instance.isEnabled;
+                    setState(() => _lockEnabled = enabled);
+                  },
+                ),
+            ]),
+            const SizedBox(height: 20),
+
+            // ── Currency ──────────────────────────────────
+            _Section(t.currency, [
+              ...AppConstants.currencies.map((cur) {
+                final selected = _selectedCurrency == cur['code'];
+                return _SettingsTile(
+                  icon: Iconsax.money,
+                  iconColor: selected ? AppColors.gold : Colors.grey,
+                  title: cur['name']!,
+                  subtitle: '${cur['code']} · ${cur['symbol']}',
+                  trailing: selected
+                      ? const Icon(Iconsax.tick_circle,
+                      color: AppColors.gold, size: 20)
+                      : null,
+                  onTap: () async {
+                    setState(() => _selectedCurrency = cur['code']!);
+                    widget.onCurrencyChanged(cur['code']!);
+                    final prefs = await SharedPreferences.getInstance();
+                    await prefs.setString(
+                        AppConstants.currencyKey, cur['code']!);
+                  },
+                );
+              }),
+            ]),
+            const SizedBox(height: 20),
+
+            // ── About ─────────────────────────────────────
+            _Section(t.aboutApp, [
+              _SettingsTile(
+                icon: Iconsax.wallet,
+                iconColor: AppColors.gold,
+                title: "Cho'ntak",
+                subtitle: AppConstants.appSlogan,
+              ),
+              _SettingsTile(
+                icon: Iconsax.info_circle,
+                iconColor: AppColors.gold,
+                title: t.version,
+              ),
+              _SettingsTile(
+                icon: Iconsax.code,
+                iconColor: AppColors.gold,
+                title: t.developer,
+                subtitle: 'Isfandiyor Madaminov',
+              ),
+            ]),
+            const SizedBox(height: 40),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Language tile ─────────────────────────────────────────────────────────────
+class _LangTile extends StatelessWidget {
+  final String flag, label;
+  final bool selected;
+  final VoidCallback onTap;
+  const _LangTile({required this.flag, required this.label,
+    required this.selected, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      onTap: onTap,
+      leading: Text(flag, style: const TextStyle(fontSize: 24)),
+      title: Text(label,
+          style: TextStyle(
+            fontWeight: selected ? FontWeight.w700 : FontWeight.w400,
+            color: selected ? AppColors.gold : null,
+          )),
+      trailing: selected
+          ? const Icon(Iconsax.tick_circle, color: AppColors.gold, size: 20)
+          : null,
+    );
+  }
+}
+
+// ── Section ───────────────────────────────────────────────────────────────────
+class _Section extends StatelessWidget {
+  final String title;
+  final List<Widget> children;
+  const _Section(this.title, this.children);
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 10),
+          child: Text(title,
+              style: const TextStyle(
+                  fontSize: 13,
+                  color: AppColors.goldDim,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.8)),
+        ),
+        Container(
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.cardDark : AppColors.surfaceLight,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+                color: isDark ? AppColors.borderDark : AppColors.borderLight),
+          ),
+          child: Column(
+            children: children.asMap().entries.map((e) {
+              return Column(children: [
+                e.value,
+                if (e.key < children.length - 1)
+                  Divider(height: 1,
+                      color: isDark
+                          ? AppColors.borderDark
+                          : AppColors.borderLight),
+              ]);
+            }).toList(),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ── Settings tile ─────────────────────────────────────────────────────────────
+class _SettingsTile extends StatelessWidget {
+  final IconData icon;
+  final Color iconColor;
+  final String title;
+  final String? subtitle;
+  final Widget? trailing;
+  final VoidCallback? onTap;
+
+  const _SettingsTile({
+    required this.icon, required this.iconColor, required this.title,
+    this.subtitle, this.trailing, this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      onTap: onTap,
+      leading: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: iconColor.withOpacity(0.15),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Icon(icon, color: iconColor, size: 18),
+      ),
+      title: Text(title,
+          style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14)),
+      subtitle: subtitle != null
+          ? Text(subtitle!,
+          style: const TextStyle(fontSize: 12, color: Colors.grey))
+          : null,
+      trailing: trailing,
+    );
+  }
+}
