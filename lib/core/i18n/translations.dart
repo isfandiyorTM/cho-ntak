@@ -52,6 +52,21 @@ class Translations {
   String get noData            => const {'en':'No data yet','uz':'Ma\'lumot yo\'q','ru':'Нет данных'}[_k]!;
   String get addToSeeStats     => const {'en':'Add transactions to see your stats','uz':'Statistikani ko\'rish uchun tranzaksiya qo\'shing','ru':'Добавьте транзакции для статистики'}[_k]!;
 
+  // ── Categories
+  String get categories        => const {'en':'Categories',         'uz':'Kategoriyalar',       'ru':'Категории'}[_k]!;
+  String get defaultCategories => const {'en':'Default',            'uz':'Standart',            'ru':'Стандартные'}[_k]!;
+  String get customCategories  => const {'en':'My Categories',      'uz':'Mening kategoriyalarim','ru':'Мои категории'}[_k]!;
+  String get addCategory       => const {'en':'Add Category',       'uz':'Kategoriya qo\'shish', 'ru':'Добавить'}[_k]!;
+  String get editCategory      => const {'en':'Edit Category',      'uz':'Tahrirlash',          'ru':'Изменить'}[_k]!;
+  String get categoryName      => const {'en':'Category name',      'uz':'Kategoriya nomi',     'ru':'Название'}[_k]!;
+  String get chooseEmoji       => const {'en':'Choose icon',        'uz':'Belgi tanlang',       'ru':'Выберите иконку'}[_k]!;
+  String get chooseColor       => const {'en':'Choose color',       'uz':'Rang tanlang',        'ru':'Выберите цвет'}[_k]!;
+  String get noCustomCategories=> const {'en':'No custom categories yet','uz':'Hali kategoriya yo\'q','ru':'Нет категорий'}[_k]!;
+
+  // ── Widget
+  String get widgetSettings => const {'en':'Home Widget',      'uz':'Uy ekrani vidjet',     'ru':'Виджет'}[_k]!;
+  String get widgetOpacity  => const {'en':'Background opacity','uz':'Fon shaffofligi',      'ru':'Прозрачность фона'}[_k]!;
+
   // ── Savings
   String get savingsGoals => const {'en':'Savings Goals', 'uz':'Tejamkorlik maqsadlari', 'ru':'Цели накоплений'}[_k]!;
   String get noSavings    => const {'en':'No goals yet',  'uz':'Hali maqsad yo\'q',     'ru':'Целей пока нет'}[_k]!;
@@ -72,7 +87,7 @@ class Translations {
   String get notifOff     => const {'en':'Disabled',          'uz':"O'chirilgan",               'ru':'Отключено'}[_k]!;
   String get morningNotif => const {'en':'Morning reminder',  'uz':'Ertalabki eslatma',         'ru':'Утреннее напоминание'}[_k]!;
   String get testNotif    => const {'en':'Send test',         'uz':'Test yuborish',             'ru':'Отправить тест'}[_k]!;
-  String get testNotifSub => const {'en':'Tap to test notifications now','uz':'Hozir sinab koring','ru':'Нажмите для проверки'}[_k]!;
+  String get testNotifSub => const {'en':'Tap to test notifications now','uz':'Hozir sinab ko\'ring','ru':'Нажмите для проверки'}[_k]!;
 
   // ── Settings ──────────────────────────────────────────────
   String get appearance        => const {'en':'Appearance','uz':"Ko'rinish",'ru':'Внешний вид'}[_k]!;

@@ -19,6 +19,8 @@ class ScreenReceiver : BroadcastReceiver() {
         val balance  = getBalanceFromDb(context)
         val currency = getCurrency(context)
         showNotification(context, balance, currency)
+        // Also refresh home screen widget
+        WidgetUpdateReceiver.refreshAllWidgets(context)
     }
 
     private fun getBalanceFromDb(context: Context): Double {

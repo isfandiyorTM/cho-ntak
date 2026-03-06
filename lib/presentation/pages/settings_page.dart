@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -8,7 +9,10 @@ import '../../core/i18n/language_provider.dart';
 import '../../core/i18n/translations.dart';
 import '../../core/services/notification_service.dart';
 import '../../core/services/app_lock_service.dart';
+import '../../data/datasources/local_database.dart';
+import 'category_page.dart';
 import 'lock_screen.dart';
+import '../blocs/category/category_bloc.dart';
 
 class SettingsPage extends StatefulWidget {
   final bool isDark;
@@ -34,6 +38,7 @@ class _SettingsPageState extends State<SettingsPage> {
   int  _notifHour      = 9;
   int  _notifMinute    = 0;
   bool _lockEnabled    = false;
+  int  _widgetOpacity  = 80;
   bool _bioEnabled     = false;
   bool _bioAvailable   = false;
 
@@ -48,12 +53,14 @@ class _SettingsPageState extends State<SettingsPage> {
     final prefs = await SharedPreferences.getInstance();
     final bioAvail = await AppLockService.instance.isBiometricAvailable;
     final lockOn   = await AppLockService.instance.isEnabled;
+    final opacity  = prefs.getInt('widget_opacity') ?? 80;
     final bioOn    = await AppLockService.instance.useBiometric;
     setState(() {
       _notifsEnabled = prefs.getBool('notif_enabled') ?? true;
       _notifHour     = prefs.getInt('notif_hour')     ?? 9;
       _notifMinute   = prefs.getInt('notif_minute')   ?? 0;
       _lockEnabled   = lockOn;
+      _widgetOpacity = opacity;
       _bioEnabled    = bioOn;
       _bioAvailable  = bioAvail;
     });
@@ -153,6 +160,28 @@ class _SettingsPageState extends State<SettingsPage> {
           children: [
 
             // ── Language ──────────────────────────────────
+            // ── Categories ────────────────────────────
+            _Section(t.categories, [
+              _SettingsTile(
+                icon: Icons.category_rounded,
+                iconColor: const Color(0xFF9C27B0),
+                title: t.customCategories,
+                subtitle: t.addCategory,
+                trailing: const Icon(Icons.chevron_right_rounded,
+                    color: AppColors.gold),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => BlocProvider.value(
+                      value: context.read<CategoryBloc>(),
+                      child: const CategoriesPage(),
+                    ),
+                  ),
+                ),
+              ),
+            ]),
+            const SizedBox(height: 20),
+
             _Section(t.languages, [
               _LangTile(flag: '🇺🇿', label: "O'zbek",
                   selected: langProvider.language == AppLanguage.uz,
@@ -219,6 +248,43 @@ class _SettingsPageState extends State<SettingsPage> {
                   onTap: _sendTestNotification,
                 ),
               ],
+            ]),
+            const SizedBox(height: 20),
+
+            // ── Widget ────────────────────────────────────
+            _Section(t.widgetSettings, [
+              _SettingsTile(
+                icon: Iconsax.mobile,
+                iconColor: AppColors.gold,
+                title: t.widgetOpacity,
+                subtitle: '${_widgetOpacity}%',
+                trailing: const SizedBox.shrink(),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                child: Row(
+                  children: [
+                    const Text('20%', style: TextStyle(fontSize: 11)),
+                    Expanded(
+                      child: Slider(
+                        value: _widgetOpacity.toDouble(),
+                        min: 20,
+                        max: 100,
+                        divisions: 16,
+                        activeColor: AppColors.gold,
+                        onChanged: (v) async {
+                          setState(() => _widgetOpacity = v.toInt());
+                          final prefs = await SharedPreferences.getInstance();
+                          await prefs.setInt('widget_opacity', v.toInt());
+                          // Trigger widget refresh
+                          await LocalDatabase.notifyWidget();
+                        },
+                      ),
+                    ),
+                    const Text('100%', style: TextStyle(fontSize: 11)),
+                  ],
+                ),
+              ),
             ]),
             const SizedBox(height: 20),
 

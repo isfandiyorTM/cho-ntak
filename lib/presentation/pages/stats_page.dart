@@ -225,6 +225,7 @@ class _StatsPageState extends State<StatsPage>
     return _CategoryRow(
       name: cat?.name ?? 'Unknown',
       icon: cat?.icon ?? Iconsax.more_circle,
+      emoji: cat?.emoji,
       color: cat?.color ?? AppColors.gold,
       amount: entry.value,
       percentage: pct,
@@ -561,14 +562,16 @@ class _CategoryPieChart extends StatelessWidget {
 
 // ── Category row with animated progress bar ───────────────────────────────────
 class _CategoryRow extends StatefulWidget {
-  final String name;
+  final String   name;
   final IconData icon;
-  final Color color;
-  final double amount, percentage;
-  final String currencySymbol;
+  final String?  emoji;
+  final Color    color;
+  final double   amount, percentage;
+  final String   currencySymbol;
   const _CategoryRow({
     required this.name,
     required this.icon,
+    this.emoji,
     required this.color,
     required this.amount,
     required this.percentage,
@@ -628,7 +631,9 @@ class _CategoryRowState extends State<_CategoryRow>
                   color: widget.color.withOpacity(0.15),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(widget.icon, color: widget.color, size: 16),
+                child: widget.emoji != null
+                    ? Text(widget.emoji!, style: const TextStyle(fontSize: 16))
+                    : Icon(widget.icon, color: widget.color, size: 16),
               ),
               const SizedBox(width: 12),
               Expanded(

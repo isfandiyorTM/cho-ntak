@@ -34,7 +34,7 @@ class _SummaryCardState extends State<SummaryCard>
   void initState() {
     super.initState();
     _ctrl = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 900));
+        vsync: this, duration: const Duration(milliseconds: 2000));
     _countAnim =
         CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic);
     _fadeAnim =
