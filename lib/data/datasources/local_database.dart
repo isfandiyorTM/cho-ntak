@@ -100,12 +100,18 @@ class LocalDatabase {
 
   // ── Custom Categories ─────────────────────────────────────
   Future<List<Map<String, dynamic>>> getCustomCategories() async {
-    try {
-      final db = await database;
-      return db.query('custom_categories', orderBy: 'name ASC');
-    } catch (_) {
-      return [];
-    }
+    final db = await database;
+    // Ensure table exists regardless of migration state
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS custom_categories (
+        id    TEXT PRIMARY KEY,
+        name  TEXT NOT NULL,
+        emoji TEXT NOT NULL,
+        color INTEGER NOT NULL,
+        type  TEXT NOT NULL DEFAULT 'both'
+      )
+    ''');
+    return db.query('custom_categories', orderBy: 'name ASC');
   }
 
   Future<void> insertCustomCategory(Map<String, dynamic> data) async {
@@ -129,6 +135,18 @@ class LocalDatabase {
   // ── Savings ───────────────────────────────────────────────
   Future<List<Map<String, dynamic>>> getAllSavings() async {
     final db = await database;
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS savings (
+        id         TEXT PRIMARY KEY,
+        title      TEXT NOT NULL,
+        target     REAL NOT NULL,
+        saved      REAL NOT NULL DEFAULT 0,
+        emoji      TEXT NOT NULL DEFAULT '🎯',
+        color      INTEGER NOT NULL DEFAULT 4294967040,
+        created_at TEXT NOT NULL,
+        deadline   TEXT
+      )
+    ''');
     return db.query('savings', orderBy: 'created_at DESC');
   }
 
