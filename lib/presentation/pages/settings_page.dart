@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/theme/app_theme.dart';
@@ -204,7 +204,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 trailing: Switch(
                   value: widget.isDark,
                   onChanged: widget.onThemeChanged,
-                  activeColor: AppColors.gold,
+                  activeColor: AppColors.amber,
                 ),
               ),
             ]),
@@ -225,7 +225,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     await _saveNotifPrefs();
                     if (!val) await NotificationService.instance.cancelAll();
                   },
-                  activeColor: AppColors.gold,
+                  activeColor: AppColors.amber,
                 ),
               ),
               // Morning time picker
@@ -271,7 +271,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         min: 20,
                         max: 100,
                         divisions: 16,
-                        activeColor: AppColors.gold,
+                        activeColor: AppColors.amber,
                         onChanged: (v) async {
                           setState(() => _widgetOpacity = v.toInt());
                           final prefs = await SharedPreferences.getInstance();
@@ -313,7 +313,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       setState(() { _lockEnabled = false; _bioEnabled = false; });
                     }
                   },
-                  activeColor: AppColors.gold,
+                  activeColor: AppColors.amber,
                 ),
               ),
               if (_lockEnabled && _bioAvailable)
@@ -328,7 +328,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       await AppLockService.instance.setUseBiometric(val);
                       setState(() => _bioEnabled = val);
                     },
-                    activeColor: AppColors.gold,
+                    activeColor: AppColors.amber,
                   ),
                 ),
               if (_lockEnabled)
@@ -497,7 +497,7 @@ class _SettingsTile extends StatelessWidget {
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: iconColor.withOpacity(0.15),
+          color: iconColor.withValues(alpha: 0.15),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Icon(icon, color: iconColor, size: 18),

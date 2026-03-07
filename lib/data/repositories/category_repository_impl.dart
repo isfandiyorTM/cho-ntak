@@ -47,7 +47,7 @@ class CategoryRepositoryImpl implements CategoryRepository {
       'id':    category.id,
       'name':  category.name,
       'emoji': category.emoji ?? '📦',
-      'color': category.color.value,
+      'color': category.color.toARGB32(),
       'type':  'both',
     });
   }
@@ -58,7 +58,7 @@ class CategoryRepositoryImpl implements CategoryRepository {
       'id':    category.id,
       'name':  category.name,
       'emoji': category.emoji ?? '📦',
-      'color': category.color.value,
+      'color': category.color.toARGB32(),
       'type':  'both',
     });
   }

@@ -30,7 +30,7 @@ class SavingModel extends SavingEntity {
     'target':     target,
     'saved':      saved,
     'emoji':      emoji,
-    'color':      color.value,
+    'color':      color.toARGB32(),
     'created_at': createdAt.toIso8601String(),
     'deadline':   deadline?.toIso8601String(),
   };

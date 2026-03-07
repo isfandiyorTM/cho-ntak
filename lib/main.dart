@@ -30,16 +30,12 @@ import 'core/services/app_lock_service.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-    statusBarColor: Colors.transparent,
-    statusBarIconBrightness: Brightness.light,
-  ));
-
   await NotificationService.instance.init();
   await NotificationService.instance.requestPermission();
 
   final prefs           = await SharedPreferences.getInstance();
   final isDark          = prefs.getBool(AppConstants.themeKey) ?? true;
+  AppTheme.applySystemUI(isDark);
   final currencyCode    = prefs.getString(AppConstants.currencyKey) ?? 'UZS';
   final onboardingDone  = prefs.getBool('onboarding_done') ?? false;
   final lockEnabled     = await AppLockService.instance.isEnabled;

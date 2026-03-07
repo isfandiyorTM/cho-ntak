@@ -25,24 +25,24 @@ class SummaryCard extends StatefulWidget {
 class _SummaryCardState extends State<SummaryCard>
     with SingleTickerProviderStateMixin {
   late AnimationController _ctrl;
-  late Animation<double> _countAnim;
-  late Animation<double> _fadeAnim;
-  late Animation<Offset> _slideAnim;
-  double _prevAmount = 0;
+  late Animation<double>   _countAnim, _fadeAnim;
+  late Animation<Offset>   _slideAnim;
+  double _fromAmount = 0;
 
   @override
   void initState() {
     super.initState();
     _ctrl = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 2000));
-    _countAnim =
-        CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic);
-    _fadeAnim =
-        CurvedAnimation(parent: _ctrl, curve: const Interval(0, 0.5));
+        vsync: this, duration: const Duration(milliseconds: 900));
+    _countAnim = CurvedAnimation(
+        parent: _ctrl, curve: const _DecelCurve());
+    _fadeAnim  = CurvedAnimation(parent: _ctrl,
+        curve: const Interval(0.0, 0.5, curve: Curves.easeOut));
     _slideAnim = Tween<Offset>(
-        begin: const Offset(0, 0.3), end: Offset.zero)
-        .animate(
-        CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic));
+        begin: const Offset(0, 0.15), end: Offset.zero)
+        .animate(CurvedAnimation(parent: _ctrl,
+        curve: const Interval(0.0, 0.6,
+            curve: Curves.easeOutCubic)));
     _ctrl.forward();
   }
 
@@ -50,18 +50,14 @@ class _SummaryCardState extends State<SummaryCard>
   void didUpdateWidget(SummaryCard old) {
     super.didUpdateWidget(old);
     if (old.amount != widget.amount) {
-      _prevAmount = old.amount;
-      _ctrl
-        ..reset()
-        ..forward();
+      _fromAmount =
+          _fromAmount + _countAnim.value * (old.amount - _fromAmount);
+      _ctrl..reset()..forward();
     }
   }
 
   @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
+  void dispose() { _ctrl.dispose(); super.dispose(); }
 
   @override
   Widget build(BuildContext context) {
@@ -74,49 +70,72 @@ class _SummaryCardState extends State<SummaryCard>
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: isDark ? AppColors.cardDark : AppColors.surfaceLight,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: widget.color.withOpacity(0.3)),
+            color: isDark ? AppColors.cardDark : AppColors.cardLight,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: isDark
+                  ? AppColors.borderDark
+                  : AppColors.borderLight,
+            ),
+            boxShadow: isDark
+                ? null
+                : [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 12,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(8),
+                    width: 32, height: 32,
                     decoration: BoxDecoration(
-                      color: widget.color.withOpacity(0.15),
+                      color: widget.color.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: Icon(widget.icon, color: widget.color, size: 18),
+                    child: Icon(widget.icon,
+                        color: widget.color, size: 15),
                   ),
-                  Text(
-                    widget.label,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: isDark ? Colors.grey[400] : Colors.grey[600],
-                      letterSpacing: 0.5,
+                  const Spacer(),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: widget.color.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      widget.label,
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: widget.color,
+                        letterSpacing: 0.2,
+                      ),
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 12),
-              // ── Animated count-up number ──────────────────
               AnimatedBuilder(
                 animation: _countAnim,
                 builder: (_, __) {
-                  final displayed =
-                      _prevAmount + (_countAnim.value * (widget.amount - _prevAmount));
+                  final v = _fromAmount +
+                      (_countAnim.value *
+                          (widget.amount - _fromAmount));
                   return Text(
-                    CurrencyFormatter.formatCompact(
-                        displayed, widget.currencySymbol),
+                    CurrencyFormatter.format(
+                        v, widget.currencySymbol),
                     style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
+                      fontSize: 17,
+                      fontWeight: FontWeight.w800,
                       color: widget.color,
-                      letterSpacing: 0.5,
+                      letterSpacing: -0.4,
                     ),
                   );
                 },
@@ -127,4 +146,11 @@ class _SummaryCardState extends State<SummaryCard>
       ),
     );
   }
+}
+
+class _DecelCurve extends Curve {
+  const _DecelCurve();
+  @override
+  double transformInternal(double t) =>
+      1 - (1 - t) * (1 - t) * (1 - t) * (1 - t);
 }

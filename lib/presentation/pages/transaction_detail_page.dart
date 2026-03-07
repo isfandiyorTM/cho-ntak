@@ -37,7 +37,7 @@ class TransactionDetailPage extends StatefulWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      barrierColor: Colors.black.withOpacity(0.6),
+      barrierColor: Colors.black.withValues(alpha: 0.6),
       builder: (_) => TransactionDetailPage(
         transaction: transaction,
         currencySymbol: currencySymbol,
@@ -115,8 +115,8 @@ class _TransactionDetailPageState extends State<TransactionDetailPage>
                     height: 4,
                     decoration: BoxDecoration(
                       color: isDark
-                          ? Colors.white.withOpacity(0.15)
-                          : Colors.black.withOpacity(0.12),
+                          ? Colors.white.withValues(alpha: 0.15)
+                          : Colors.black.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -134,9 +134,9 @@ class _TransactionDetailPageState extends State<TransactionDetailPage>
                         height: 72,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: color.withOpacity(0.15),
+                          color: color.withValues(alpha: 0.15),
                           border: Border.all(
-                              color: color.withOpacity(0.4), width: 2),
+                              color: color.withValues(alpha: 0.4), width: 2),
                         ),
                         child: Icon(cat?.icon ?? Iconsax.wallet,
                             color: color, size: 32),
@@ -159,7 +159,7 @@ class _TransactionDetailPageState extends State<TransactionDetailPage>
                         padding: const EdgeInsets.symmetric(
                             horizontal: 12, vertical: 4),
                         decoration: BoxDecoration(
-                          color: color.withOpacity(0.12),
+                          color: color.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
@@ -207,10 +207,10 @@ class _TransactionDetailPageState extends State<TransactionDetailPage>
                         padding: const EdgeInsets.symmetric(
                             horizontal: 16, vertical: 6),
                         decoration: BoxDecoration(
-                          color: amtColor.withOpacity(0.1),
+                          color: amtColor.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
-                              color: amtColor.withOpacity(0.3)),
+                              color: amtColor.withValues(alpha: 0.3)),
                         ),
                         child: Text(
                           isIncome ? '↑ Daromad' : '↓ Xarajat',
@@ -344,7 +344,7 @@ class _DetailRow extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: iconColor.withOpacity(0.1),
+              color: iconColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(icon, color: iconColor, size: 16),
@@ -415,11 +415,11 @@ class _ActionButton extends StatelessWidget {
           border: Border.all(
               color: filled
                   ? Colors.transparent
-                  : color.withOpacity(0.4)),
+                  : color.withValues(alpha: 0.4)),
           boxShadow: filled
               ? [
             BoxShadow(
-              color: color.withOpacity(0.3),
+              color: color.withValues(alpha: 0.3),
               blurRadius: 12,
               offset: const Offset(0, 4),
             )

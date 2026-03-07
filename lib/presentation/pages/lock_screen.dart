@@ -159,7 +159,7 @@ class _LockScreenState extends State<LockScreen>
               const Spacer(),
 
               // ── Logo + title ──────────────────────────────
-              const Text('💵',
+              const Text('👛',
                   style: TextStyle(fontSize: 56)),
               const SizedBox(height: 16),
               Text(
@@ -184,7 +184,7 @@ class _LockScreenState extends State<LockScreen>
                     : 'Kirish uchun PIN kiriting',
                 style: TextStyle(
                     fontSize: 14,
-                    color: Colors.white.withOpacity(0.45)),
+                    color: Colors.white.withValues(alpha: 0.45)),
               ),
               const SizedBox(height: 48),
 
@@ -216,13 +216,13 @@ class _LockScreenState extends State<LockScreen>
                         border: Border.all(
                           color: filled
                               ? AppColors.gold
-                              : Colors.white.withOpacity(0.3),
+                              : Colors.white.withValues(alpha: 0.3),
                           width: 2,
                         ),
                         boxShadow: filled
                             ? [
                           BoxShadow(
-                            color: AppColors.gold.withOpacity(0.5),
+                            color: AppColors.gold.withValues(alpha: 0.5),
                             blurRadius: 8,
                             spreadRadius: 1,
                           )
@@ -283,7 +283,7 @@ class _LockScreenState extends State<LockScreen>
                         _NumKey(
                           icon: Icons.backspace_outlined,
                           onTap: (_) => _onDelete(),
-                          iconColor: Colors.white.withOpacity(0.6),
+                          iconColor: Colors.white.withValues(alpha: 0.6),
                         ),
                       ],
                     ),
@@ -353,9 +353,9 @@ class _NumKeyState extends State<_NumKey>
           margin: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: Colors.white.withOpacity(0.07),
+            color: Colors.white.withValues(alpha: 0.07),
             border: Border.all(
-                color: Colors.white.withOpacity(0.1)),
+                color: Colors.white.withValues(alpha: 0.1)),
           ),
           child: Center(
             child: widget.digit != null
@@ -368,7 +368,7 @@ class _NumKeyState extends State<_NumKey>
               ),
             )
                 : Icon(widget.icon,
-                color: widget.iconColor ?? Colors.white.withOpacity(0.7),
+                color: widget.iconColor ?? Colors.white.withValues(alpha: 0.7),
                 size: 28),
           ),
         ),

@@ -82,7 +82,7 @@ class CategoriesPage extends StatelessWidget {
                       color: isDark ? AppColors.cardDark : AppColors.cardLight,
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(
-                        color: AppColors.gold.withOpacity(0.3),
+                        color: AppColors.gold.withValues(alpha: 0.3),
                         style: BorderStyle.solid,
                       ),
                     ),
@@ -250,7 +250,7 @@ class _CategorySheetState extends State<_CategorySheet> {
               child: Container(
                 width: 40, height: 4,
                 decoration: BoxDecoration(
-                    color: Colors.grey[600],
+                    color: AppColors.subTextLight,
                     borderRadius: BorderRadius.circular(2)),
               ),
             ),
@@ -268,9 +268,9 @@ class _CategorySheetState extends State<_CategorySheet> {
                 duration: const Duration(milliseconds: 250),
                 width: 80, height: 80,
                 decoration: BoxDecoration(
-                  color: _color.withOpacity(0.15),
+                  color: _color.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: _color.withOpacity(0.5), width: 2),
+                  border: Border.all(color: _color.withValues(alpha: 0.5), width: 2),
                 ),
                 child: Center(
                     child: Text(_emoji,
@@ -322,7 +322,7 @@ class _CategorySheetState extends State<_CategorySheet> {
                       duration: const Duration(milliseconds: 180),
                       decoration: BoxDecoration(
                         color: selected
-                            ? _color.withOpacity(0.2)
+                            ? _color.withValues(alpha: 0.2)
                             : Colors.transparent,
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
@@ -364,7 +364,7 @@ class _CategorySheetState extends State<_CategorySheet> {
                       ),
                       boxShadow: selected
                           ? [BoxShadow(
-                          color: c.withOpacity(0.6),
+                          color: c.withValues(alpha: 0.6),
                           blurRadius: 8, spreadRadius: 2)]
                           : null,
                     ),
@@ -432,7 +432,7 @@ class _CategoryTile extends StatelessWidget {
           Container(
             width: 42, height: 42,
             decoration: BoxDecoration(
-              color: category.color.withOpacity(0.15),
+              color: category.color.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Center(
@@ -454,12 +454,12 @@ class _CategoryTile extends StatelessWidget {
               padding: const EdgeInsets.symmetric(
                   horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: Colors.grey.withOpacity(0.15),
+                color: Colors.grey.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text('default',
                   style: TextStyle(
-                      fontSize: 10, color: Colors.grey[500])),
+                      fontSize: 10, color: AppColors.subTextLight)),
             )
           else
             Row(

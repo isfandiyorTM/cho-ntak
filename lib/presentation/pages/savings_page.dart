@@ -52,7 +52,7 @@ class _SavingsPageState extends State<SavingsPage> {
               title: t.noSavings,
               subtitle: t.noSavingsSub,
               icon: Iconsax.coin,
-              iconColor: AppColors.gold.withOpacity(0.6),
+              iconColor: AppColors.amber.withValues(alpha: 0.6),
               action: _AddButton(
                 onTap: () => _showAddSheet(context),
                 label: t.addGoal,
@@ -187,14 +187,14 @@ class _SummaryHeader extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            AppColors.gold.withOpacity(0.15),
-            AppColors.gold.withOpacity(0.05),
+            AppColors.gold.withValues(alpha: 0.15),
+            AppColors.gold.withValues(alpha: 0.05),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.gold.withOpacity(0.3)),
+        border: Border.all(color: AppColors.gold.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -217,13 +217,13 @@ class _SummaryHeader extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                 decoration: BoxDecoration(
                   color: completed == total && total > 0
-                      ? AppColors.income.withOpacity(0.15)
-                      : AppColors.gold.withOpacity(0.1),
+                      ? AppColors.income.withValues(alpha: 0.15)
+                      : AppColors.gold.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color: completed == total && total > 0
-                        ? AppColors.income.withOpacity(0.3)
-                        : AppColors.gold.withOpacity(0.2),
+                        ? AppColors.income.withValues(alpha: 0.3)
+                        : AppColors.gold.withValues(alpha: 0.2),
                   ),
                 ),
                 child: Column(children: [
@@ -358,8 +358,8 @@ class _SavingCardState extends State<_SavingCard>
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
               color: s.isCompleted
-                  ? AppColors.income.withOpacity(0.4)
-                  : color.withOpacity(0.2),
+                  ? AppColors.income.withValues(alpha: 0.4)
+                  : color.withValues(alpha: 0.2),
               width: s.isCompleted ? 1.5 : 1,
             ),
           ),
@@ -390,7 +390,7 @@ class _SavingCardState extends State<_SavingCard>
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 8, vertical: 3),
                                 decoration: BoxDecoration(
-                                  color: AppColors.income.withOpacity(0.15),
+                                  color: AppColors.income.withValues(alpha: 0.15),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: const Text('✓ Bajarildi',
@@ -460,11 +460,11 @@ class _SavingCardState extends State<_SavingCard>
                         height: 10,
                         decoration: BoxDecoration(
                           gradient: LinearGradient(colors: [
-                            color.withOpacity(0.7), color,
+                            color.withValues(alpha: 0.7), color,
                           ]),
                           borderRadius: BorderRadius.circular(5),
                           boxShadow: [BoxShadow(
-                            color: color.withOpacity(0.3),
+                            color: color.withValues(alpha: 0.3),
                             blurRadius: 4, offset: const Offset(0, 2),
                           )],
                         ),
@@ -508,7 +508,7 @@ class _SavingCardState extends State<_SavingCard>
                               color: color,
                               borderRadius: BorderRadius.circular(10),
                               boxShadow: [BoxShadow(
-                                color: color.withOpacity(0.35),
+                                color: color.withValues(alpha: 0.35),
                                 blurRadius: 8, offset: const Offset(0, 3),
                               )],
                             ),
@@ -630,7 +630,7 @@ class _AddSavingSheetState extends State<_AddSavingSheet> {
               Center(child: Container(
                 width: 40, height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.grey.withOpacity(0.3),
+                  color: Colors.grey.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(2),
                 ),
               )),
@@ -655,7 +655,7 @@ class _AddSavingSheetState extends State<_AddSavingSheet> {
                     width: 48, height: 48,
                     decoration: BoxDecoration(
                       color: _emoji == e
-                          ? _color.withOpacity(0.2)
+                          ? _color.withValues(alpha: 0.2)
                           : (isDark ? AppColors.cardDark : AppColors.surfaceLight),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
@@ -690,7 +690,7 @@ class _AddSavingSheetState extends State<_AddSavingSheet> {
                         width: 2.5,
                       ),
                       boxShadow: _color == c ? [BoxShadow(
-                        color: c.withOpacity(0.5),
+                        color: c.withValues(alpha: 0.5),
                         blurRadius: 8,
                       )] : [],
                     ),
@@ -795,7 +795,7 @@ class _AddSavingSheetState extends State<_AddSavingSheet> {
                       color: _color,
                       borderRadius: BorderRadius.circular(14),
                       boxShadow: [BoxShadow(
-                        color: _color.withOpacity(0.35),
+                        color: _color.withValues(alpha: 0.35),
                         blurRadius: 12, offset: const Offset(0, 4),
                       )],
                     ),
@@ -856,7 +856,7 @@ class _AddMoneySheetState extends State<_AddMoneySheet> {
             Container(
               width: 40, height: 4,
               decoration: BoxDecoration(
-                color: Colors.grey.withOpacity(0.3),
+                color: Colors.grey.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -884,9 +884,9 @@ class _AddMoneySheetState extends State<_AddMoneySheet> {
                         margin: const EdgeInsets.only(right: 8),
                         padding: const EdgeInsets.symmetric(vertical: 10),
                         decoration: BoxDecoration(
-                          color: color.withOpacity(0.1),
+                          color: color.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: color.withOpacity(0.2)),
+                          border: Border.all(color: color.withValues(alpha: 0.2)),
                         ),
                         child: Center(
                           child: Text(
@@ -938,7 +938,7 @@ class _AddMoneySheetState extends State<_AddMoneySheet> {
                     color: color,
                     borderRadius: BorderRadius.circular(14),
                     boxShadow: [BoxShadow(
-                      color: color.withOpacity(0.35),
+                      color: color.withValues(alpha: 0.35),
                       blurRadius: 12, offset: const Offset(0, 4),
                     )],
                   ),
@@ -975,7 +975,7 @@ class _AddButton extends StatelessWidget {
           color: AppColors.gold,
           borderRadius: BorderRadius.circular(14),
           boxShadow: [BoxShadow(
-            color: AppColors.gold.withOpacity(0.3),
+            color: AppColors.gold.withValues(alpha: 0.3),
             blurRadius: 10, offset: const Offset(0, 3),
           )],
         ),
@@ -1024,7 +1024,7 @@ class _PulseAddFabState extends State<_PulseAddFab>
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
           boxShadow: [BoxShadow(
-            color: AppColors.gold.withOpacity(0.4),
+            color: AppColors.gold.withValues(alpha: 0.4),
             blurRadius: 16, spreadRadius: 2,
           )],
         ),

@@ -38,28 +38,25 @@ class _TransactionTileState extends State<TransactionTile>
   void initState() {
     super.initState();
     _ctrl = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 400));
+        vsync: this, duration: const Duration(milliseconds: 300));
     _fade  = CurvedAnimation(parent: _ctrl, curve: Curves.easeOut);
     _slide = Tween<Offset>(
-        begin: const Offset(0.08, 0), end: Offset.zero)
-        .animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOut));
-
-    Future.delayed(Duration(milliseconds: 60 * widget.index), () {
+        begin: const Offset(0, 0.05), end: Offset.zero)
+        .animate(CurvedAnimation(
+        parent: _ctrl, curve: Curves.easeOutCubic));
+    Future.delayed(Duration(milliseconds: 35 * widget.index), () {
       if (mounted) _ctrl.forward();
     });
   }
 
   @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
+  void dispose() { _ctrl.dispose(); super.dispose(); }
 
   @override
   Widget build(BuildContext context) {
     final isIncome = widget.transaction.type == TransactionType.income;
     final isDark   = Theme.of(context).brightness == Brightness.dark;
-    final color    = widget.category?.color ?? AppColors.gold;
+    final color    = widget.category?.color ?? AppColors.accent;
     final hasEmoji = widget.category?.emoji != null;
 
     return FadeTransition(
@@ -67,71 +64,84 @@ class _TransactionTileState extends State<TransactionTile>
       child: SlideTransition(
         position: _slide,
         child: Container(
-          margin: const EdgeInsets.only(bottom: 10),
+          margin: const EdgeInsets.only(bottom: 8),
           decoration: BoxDecoration(
-            color: isDark ? AppColors.cardDark : AppColors.surfaceLight,
-            borderRadius: BorderRadius.circular(14),
+            color: isDark ? AppColors.cardDark : AppColors.cardLight,
+            borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: isDark ? AppColors.borderDark : AppColors.borderLight,
+              color: isDark
+                  ? AppColors.borderDark
+                  : AppColors.borderLight,
             ),
+            boxShadow: isDark
+                ? null
+                : [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
           child: Material(
             color: Colors.transparent,
+            borderRadius: BorderRadius.circular(16),
             child: InkWell(
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(16),
               onTap: () {},
               child: Padding(
                 padding: const EdgeInsets.symmetric(
-                    horizontal: 16, vertical: 10),
+                    horizontal: 14, vertical: 12),
                 child: Row(
                   children: [
-
-                    // ── Category icon / emoji ──────────────
+                    // Icon / emoji
                     Container(
-                      width: 44,
-                      height: 44,
+                      width: 44, height: 44,
                       decoration: BoxDecoration(
-                        color: color.withOpacity(0.15),
+                        color: color.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Center(
                         child: hasEmoji
-                            ? Text(
-                          widget.category!.emoji!,
-                          style: const TextStyle(fontSize: 22),
-                        )
+                            ? Text(widget.category!.emoji!,
+                            style:
+                            const TextStyle(fontSize: 20))
                             : Icon(
-                          widget.category?.icon ?? Iconsax.wallet,
-                          color: color,
-                          size: 20,
-                        ),
+                            widget.category?.icon
+                                ?? Iconsax.wallet,
+                            color: color,
+                            size: 19),
                       ),
                     ),
                     const SizedBox(width: 12),
 
-                    // ── Title + subtitle ───────────────────
+                    // Title + meta
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             widget.transaction.title,
-                            style: const TextStyle(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 15),
+                            style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 14,
+                              color: isDark
+                                  ? AppColors.textDark
+                                  : AppColors.textLight,
+                              letterSpacing: -0.2,
+                            ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
-                          const SizedBox(height: 2),
+                          const SizedBox(height: 3),
                           Text(
-                            '${widget.category?.name ?? ''}'
-                                ' · '
+                            '${widget.category?.name ?? ''}  ·  '
                                 '${DateFormatter.formatShort(widget.transaction.date)}',
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: 11,
                               color: isDark
-                                  ? Colors.grey[500]
-                                  : Colors.grey[600],
+                                  ? AppColors.subTextDark
+                                  : AppColors.subTextLight,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -141,51 +151,68 @@ class _TransactionTileState extends State<TransactionTile>
                     ),
                     const SizedBox(width: 8),
 
-                    // ── Amount ─────────────────────────────
-                    Text(
-                      '${isIncome ? '+' : '-'}'
-                          '${CurrencyFormatter.format(widget.transaction.amount, widget.currencySymbol)}',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 14,
-                        color: isIncome
-                            ? AppColors.income
-                            : AppColors.expense,
-                      ),
-                    ),
-
-                    // ── Menu ───────────────────────────────
-                    PopupMenuButton<String>(
-                      icon: Icon(
-                        Iconsax.more,
-                        size: 18,
-                        color: isDark
-                            ? Colors.grey[600]
-                            : Colors.grey[400],
-                      ),
-                      onSelected: (v) {
-                        if (v == 'edit')   widget.onEdit?.call();
-                        if (v == 'delete') widget.onDelete?.call();
-                      },
-                      itemBuilder: (_) => [
-                        const PopupMenuItem(
-                          value: 'edit',
-                          child: Row(children: [
-                            Icon(Iconsax.edit, size: 16),
-                            SizedBox(width: 8),
-                            Text('Tahrirlash'),
-                          ]),
+                    // Amount + menu
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          '${isIncome ? '+' : '−'}'
+                              '${CurrencyFormatter.format(widget.transaction.amount, widget.currencySymbol)}',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 13,
+                            letterSpacing: -0.3,
+                            color: isIncome
+                                ? AppColors.income
+                                : AppColors.expense,
+                          ),
                         ),
-                        const PopupMenuItem(
-                          value: 'delete',
-                          child: Row(children: [
-                            Icon(Iconsax.trash,
-                                size: 16, color: AppColors.expense),
-                            SizedBox(width: 8),
-                            Text('O\'chirish',
-                                style:
-                                TextStyle(color: AppColors.expense)),
-                          ]),
+                        const SizedBox(height: 4),
+                        SizedBox(
+                          width: 24, height: 20,
+                          child: PopupMenuButton<String>(
+                            padding: EdgeInsets.zero,
+                            icon: Icon(
+                              Icons.more_horiz_rounded,
+                              size: 16,
+                              color: isDark
+                                  ? AppColors.subTextDark
+                                  : AppColors.subTextLight,
+                            ),
+                            onSelected: (v) {
+                              if (v == 'edit')
+                                widget.onEdit?.call();
+                              if (v == 'delete')
+                                widget.onDelete?.call();
+                            },
+                            itemBuilder: (_) => [
+                              PopupMenuItem(
+                                value: 'edit',
+                                child: Row(children: [
+                                  Icon(Iconsax.edit,
+                                      size: 15,
+                                      color: isDark
+                                          ? AppColors.textDark
+                                          : AppColors.textLight),
+                                  const SizedBox(width: 8),
+                                  const Text('Tahrirlash'),
+                                ]),
+                              ),
+                              PopupMenuItem(
+                                value: 'delete',
+                                child: Row(children: [
+                                  const Icon(
+                                      Icons.delete_outline_rounded,
+                                      size: 15,
+                                      color: AppColors.expense),
+                                  const SizedBox(width: 8),
+                                  const Text("O'chirish",
+                                      style: TextStyle(
+                                          color: AppColors.expense)),
+                                ]),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),

@@ -129,7 +129,7 @@ class _StatsPageState extends State<StatsPage>
                   title: t.noData,
                   subtitle: t.addToSeeStats,
                   icon: Iconsax.chart,
-                  iconColor: AppColors.gold.withOpacity(0.5),
+                  iconColor: AppColors.gold.withValues(alpha: 0.5),
                 );
               }
 
@@ -290,10 +290,10 @@ class _EmptyStats extends StatelessWidget {
                 style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
-                    color: Colors.grey[600])),
+                    color: AppColors.subTextLight)),
             const SizedBox(height: 8),
             Text(t.addToSeeStats,
-                style: TextStyle(fontSize: 13, color: Colors.grey[500])),
+                style: TextStyle(fontSize: 13, color: AppColors.subTextLight)),
           ],
         ),
       ),
@@ -371,7 +371,7 @@ class _OverviewChart extends StatelessWidget {
                             child: Text(labels[v.toInt()],
                                 style: TextStyle(
                                     fontSize: 11,
-                                    color: Colors.grey[500])),
+                                    color: AppColors.subTextLight)),
                           );
                         }
                         return const SizedBox.shrink();
@@ -628,7 +628,7 @@ class _CategoryRowState extends State<_CategoryRow>
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: widget.color.withOpacity(0.15),
+                  color: widget.color.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: widget.emoji != null
@@ -654,7 +654,7 @@ class _CategoryRowState extends State<_CategoryRow>
                     '${(widget.percentage * 100).toStringAsFixed(1)}%',
                     style: TextStyle(
                         fontSize: 11,
-                        color: isDark ? Colors.grey[500] : Colors.grey[600]),
+                        color: isDark ? AppColors.subTextLight : AppColors.subTextLight),
                   ),
                 ],
               ),

@@ -162,15 +162,15 @@ class _OnboardingPageState extends State<OnboardingPage>
               shape: BoxShape.circle,
               gradient: RadialGradient(
                 colors: [
-                  AppColors.gold.withOpacity(0.3),
-                  AppColors.gold.withOpacity(0.05),
+                  AppColors.gold.withValues(alpha: 0.3),
+                  AppColors.gold.withValues(alpha: 0.05),
                 ],
               ),
               border: Border.all(
-                  color: AppColors.gold.withOpacity(0.4), width: 1.5),
+                  color: AppColors.gold.withValues(alpha: 0.4), width: 1.5),
             ),
             child: const Center(
-              child: Text('💵', style: TextStyle(fontSize: 72)),
+              child: Text('👛', style: TextStyle(fontSize: 72)),
             ),
           ),
           const SizedBox(height: 40),
@@ -189,7 +189,7 @@ class _OnboardingPageState extends State<OnboardingPage>
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 18,
-              color: Colors.white.withOpacity(0.6),
+              color: Colors.white.withValues(alpha: 0.6),
               height: 1.5,
             ),
           ),
@@ -199,14 +199,14 @@ class _OnboardingPageState extends State<OnboardingPage>
             const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             decoration: BoxDecoration(
               border: Border.all(
-                  color: AppColors.gold.withOpacity(0.3), width: 1),
+                  color: AppColors.gold.withValues(alpha: 0.3), width: 1),
               borderRadius: BorderRadius.circular(30),
-              color: AppColors.gold.withOpacity(0.08),
+              color: AppColors.gold.withValues(alpha: 0.08),
             ),
             child: Text(
               "Shaxsiy moliyangizni nazorat qiling",
               style: TextStyle(
-                  fontSize: 13, color: AppColors.gold.withOpacity(0.8)),
+                  fontSize: 13, color: AppColors.gold.withValues(alpha: 0.8)),
             ),
           ),
         ],
@@ -238,7 +238,7 @@ class _OnboardingPageState extends State<OnboardingPage>
                   "Nima qiladi?",
                   style: TextStyle(
                     fontSize: 14,
-                    color: AppColors.gold.withOpacity(0.7),
+                    color: AppColors.gold.withValues(alpha: 0.7),
                     letterSpacing: 2,
                     fontWeight: FontWeight.w600,
                   ),
@@ -297,7 +297,7 @@ class _OnboardingPageState extends State<OnboardingPage>
                   "SOZLASH",
                   style: TextStyle(
                     fontSize: 13,
-                    color: AppColors.gold.withOpacity(0.7),
+                    color: AppColors.gold.withValues(alpha: 0.7),
                     letterSpacing: 3,
                     fontWeight: FontWeight.w600,
                   ),
@@ -318,7 +318,7 @@ class _OnboardingPageState extends State<OnboardingPage>
                   "Keyinchalik sozlamalardan\no'zgartirish mumkin",
                   style: TextStyle(
                       fontSize: 14,
-                      color: Colors.white.withOpacity(0.4),
+                      color: Colors.white.withValues(alpha: 0.4),
                       height: 1.4),
                 ),
               ],
@@ -338,13 +338,13 @@ class _OnboardingPageState extends State<OnboardingPage>
                       horizontal: 16, vertical: 12),
                   decoration: BoxDecoration(
                     color: selected
-                        ? AppColors.gold.withOpacity(0.15)
-                        : Colors.white.withOpacity(0.05),
+                        ? AppColors.gold.withValues(alpha: 0.15)
+                        : Colors.white.withValues(alpha: 0.05),
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(
                       color: selected
                           ? AppColors.gold
-                          : Colors.white.withOpacity(0.1),
+                          : Colors.white.withValues(alpha: 0.1),
                       width: selected ? 1.5 : 1,
                     ),
                   ),
@@ -357,7 +357,7 @@ class _OnboardingPageState extends State<OnboardingPage>
                           fontSize: 18,
                           color: selected
                               ? AppColors.gold
-                              : Colors.white.withOpacity(0.5),
+                              : Colors.white.withValues(alpha: 0.5),
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -372,7 +372,7 @@ class _OnboardingPageState extends State<OnboardingPage>
                               fontWeight: FontWeight.w700,
                               color: selected
                                   ? Colors.white
-                                  : Colors.white.withOpacity(0.6),
+                                  : Colors.white.withValues(alpha: 0.6),
                             ),
                           ),
                           Text(
@@ -380,8 +380,8 @@ class _OnboardingPageState extends State<OnboardingPage>
                             style: TextStyle(
                               fontSize: 11,
                               color: selected
-                                  ? AppColors.gold.withOpacity(0.7)
-                                  : Colors.white.withOpacity(0.3),
+                                  ? AppColors.gold.withValues(alpha: 0.7)
+                                  : Colors.white.withValues(alpha: 0.3),
                             ),
                           ),
                         ],
@@ -429,8 +429,8 @@ class _OnboardingPageState extends State<OnboardingPage>
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    AppColors.gold.withOpacity(0.25),
-                    AppColors.gold.withOpacity(0.05),
+                    AppColors.gold.withValues(alpha: 0.25),
+                    AppColors.gold.withValues(alpha: 0.05),
                   ],
                 ),
                 border: Border.all(color: AppColors.gold, width: 2),
@@ -453,7 +453,7 @@ class _OnboardingPageState extends State<OnboardingPage>
           Text(
             "Tanlangan valyuta: ",
             style: TextStyle(
-                fontSize: 15, color: Colors.white.withOpacity(0.4)),
+                fontSize: 15, color: Colors.white.withValues(alpha: 0.4)),
           ),
           const SizedBox(height: 4),
           Text(
@@ -469,10 +469,10 @@ class _OnboardingPageState extends State<OnboardingPage>
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.04),
+              color: Colors.white.withValues(alpha: 0.04),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                  color: Colors.white.withOpacity(0.08)),
+                  color: Colors.white.withValues(alpha: 0.08)),
             ),
             child: Column(
               children: [
@@ -554,7 +554,7 @@ class _BackgroundBlobs extends StatelessWidget {
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    color.withOpacity(0.12),
+                    color.withValues(alpha: 0.12),
                     Colors.transparent,
                   ],
                 ),
@@ -572,7 +572,7 @@ class _BackgroundBlobs extends StatelessWidget {
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    color.withOpacity(0.07),
+                    color.withValues(alpha: 0.07),
                     Colors.transparent,
                   ],
                 ),
@@ -597,10 +597,10 @@ class _FeatureCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 14),
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.04),
+        color: Colors.white.withValues(alpha: 0.04),
         borderRadius: BorderRadius.circular(16),
         border:
-        Border.all(color: Colors.white.withOpacity(0.07)),
+        Border.all(color: Colors.white.withValues(alpha: 0.07)),
       ),
       child: Row(
         children: [
@@ -608,7 +608,7 @@ class _FeatureCard extends StatelessWidget {
             width: 52,
             height: 52,
             decoration: BoxDecoration(
-              color: AppColors.gold.withOpacity(0.1),
+              color: AppColors.gold.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(14),
             ),
             child: Center(
@@ -628,7 +628,7 @@ class _FeatureCard extends StatelessWidget {
               Text(subtitle,
                   style: TextStyle(
                       fontSize: 13,
-                      color: Colors.white.withOpacity(0.4),
+                      color: Colors.white.withValues(alpha: 0.4),
                       height: 1.3)),
             ],
           ),
@@ -653,7 +653,7 @@ class _ReadyTip extends StatelessWidget {
           child: Text(text,
               style: TextStyle(
                   fontSize: 13,
-                  color: Colors.white.withOpacity(0.55),
+                  color: Colors.white.withValues(alpha: 0.55),
                   height: 1.3)),
         ),
       ],
@@ -685,7 +685,7 @@ class _BottomBar extends StatelessWidget {
           end: Alignment.bottomCenter,
           colors: [
             Colors.transparent,
-            AppColors.bgDark.withOpacity(0.95),
+            AppColors.bgDark.withValues(alpha: 0.95),
             AppColors.bgDark,
           ],
         ),
@@ -706,7 +706,7 @@ class _BottomBar extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: active
                       ? AppColors.gold
-                      : AppColors.gold.withOpacity(0.2),
+                      : AppColors.gold.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(4),
                 ),
               );
@@ -723,7 +723,7 @@ class _BottomBar extends StatelessWidget {
                   child: Text(
                     "O'tkazib yuborish",
                     style: TextStyle(
-                        color: Colors.white.withOpacity(0.35),
+                        color: Colors.white.withValues(alpha: 0.35),
                         fontSize: 14),
                   ),
                 )
@@ -747,7 +747,7 @@ class _BottomBar extends StatelessWidget {
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.gold.withOpacity(0.35),
+                        color: AppColors.gold.withValues(alpha: 0.35),
                         blurRadius: 20,
                         offset: const Offset(0, 6),
                       ),
