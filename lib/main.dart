@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'core/constants/app_constants.dart';
 import 'core/theme/app_theme.dart';
+import 'core/theme/theme_notifier.dart';
 import 'core/i18n/language_provider.dart';
 import 'core/services/notification_service.dart';
 import 'data/datasources/local_database.dart';
@@ -33,18 +34,19 @@ void main() async {
   await NotificationService.instance.init();
   await NotificationService.instance.requestPermission();
 
-  final prefs           = await SharedPreferences.getInstance();
-  final isDark          = prefs.getBool(AppConstants.themeKey) ?? true;
+  final prefs          = await SharedPreferences.getInstance();
+  final isDark         = prefs.getBool(AppConstants.themeKey) ?? true;
+  final currencyCode   = prefs.getString(AppConstants.currencyKey) ?? 'UZS';
+  final onboardingDone = prefs.getBool('onboarding_done') ?? false;
+  final lockEnabled    = await AppLockService.instance.isEnabled;
+
   AppTheme.applySystemUI(isDark);
-  final currencyCode    = prefs.getString(AppConstants.currencyKey) ?? 'UZS';
-  final onboardingDone  = prefs.getBool('onboarding_done') ?? false;
-  final lockEnabled     = await AppLockService.instance.isEnabled;
 
   runApp(ChontakApp(
-    isDark: isDark,
-    currencyCode: currencyCode,
+    isDark:         isDark,
+    currencyCode:   currencyCode,
     showOnboarding: !onboardingDone,
-    showLock: lockEnabled,
+    showLock:       lockEnabled,
   ));
 }
 
@@ -53,19 +55,23 @@ class ChontakApp extends StatefulWidget {
   final String currencyCode;
   final bool showOnboarding;
   final bool showLock;
-  const ChontakApp(
-      {super.key, required this.isDark, required this.currencyCode, required this.showOnboarding, required this.showLock});
+  const ChontakApp({
+    super.key,
+    required this.isDark,
+    required this.currencyCode,
+    required this.showOnboarding,
+    required this.showLock,
+  });
 
   @override
   State<ChontakApp> createState() => _ChontakAppState();
 }
 
-// No WidgetsBindingObserver — we do NOT trigger on app resume anymore
 class _ChontakAppState extends State<ChontakApp> {
-  late bool   _isDark;
-  late String _currencyCode;
-  late bool   _showOnboarding;
-  late bool   _showLock;
+  late ThemeNotifier   _themeNotifier;
+  late String          _currencyCode;
+  late bool            _showOnboarding;
+  late bool            _showLock;
 
   late final LocalDatabase             _db;
   late final TransactionRepositoryImpl _txRepo;
@@ -76,22 +82,25 @@ class _ChontakAppState extends State<ChontakApp> {
   @override
   void initState() {
     super.initState();
-    _isDark         = widget.isDark;
+    _themeNotifier  = ThemeNotifier(widget.isDark);
     _showOnboarding = widget.showOnboarding;
     _showLock       = widget.showLock;
-    _currencyCode = widget.currencyCode;
-    _db           = LocalDatabase.instance;
-    _txRepo       = TransactionRepositoryImpl(_db);
-    _budgetRepo   = BudgetRepositoryImpl(_db);
-    _categoryRepo = CategoryRepositoryImpl();
-    _langProvider = LanguageProvider();
+    _currencyCode   = widget.currencyCode;
+    _db             = LocalDatabase.instance;
+    _txRepo         = TransactionRepositoryImpl(_db);
+    _budgetRepo     = BudgetRepositoryImpl(_db);
+    _categoryRepo   = CategoryRepositoryImpl();
+    _langProvider   = LanguageProvider();
 
-    // Schedule daily notification ONCE on app start
-    // After this, Android fires it every day at the chosen time automatically
     Future.delayed(const Duration(seconds: 2), _scheduleDaily);
   }
 
-  // Called once on startup + whenever user changes notification time in settings
+  @override
+  void dispose() {
+    _themeNotifier.dispose();
+    super.dispose();
+  }
+
   Future<void> _scheduleDaily() async {
     try {
       final prefs   = await SharedPreferences.getInstance();
@@ -140,20 +149,19 @@ class _ChontakAppState extends State<ChontakApp> {
         "so'm";
   }
 
-  void _handleThemeChange(bool isDark) async {
-    setState(() => _isDark = isDark);
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(AppConstants.themeKey, isDark);
-  }
-
   void _handleCurrencyChange(String code) {
     setState(() => _currencyCode = code);
+    SharedPreferences.getInstance()
+        .then((p) => p.setString(AppConstants.currencyKey, code));
   }
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider.value(
-      value: _langProvider,
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider.value(value: _themeNotifier),
+        ChangeNotifierProvider.value(value: _langProvider),
+      ],
       child: MultiBlocProvider(
         providers: [
           BlocProvider(
@@ -176,26 +184,37 @@ class _ChontakAppState extends State<ChontakApp> {
             create: (_) => CategoryBloc(repository: _categoryRepo),
           ),
         ],
-        child: Consumer<LanguageProvider>(
-          builder: (context, langProvider, _) {
-            _categoryRepo.updateLanguage(langProvider.t);
-            return MaterialApp(
-              title: AppConstants.appName,
-              debugShowCheckedModeBanner: false,
-              theme:     AppTheme.lightTheme,
-              darkTheme: AppTheme.darkTheme,
-              themeMode: _isDark ? ThemeMode.dark : ThemeMode.light,
-              home: _showOnboarding
-                  ? const OnboardingPage()
-                  : _showLock
-                  ? LockScreen(onUnlocked: () => setState(() => _showLock = false))
-                  : MainShell(
-                isDark:            _isDark,
-                currency:          _currencyCode,
-                currencySymbol:    _currencySymbol,
-                onThemeChanged:    _handleThemeChange,
-                onCurrencyChanged: _handleCurrencyChange,
-              ),
+        // ── Consumer<ThemeNotifier> is the ONLY thing that rebuilds MaterialApp
+        child: Consumer<ThemeNotifier>(
+          builder: (context, themeNotifier, _) {
+            return Consumer<LanguageProvider>(
+              builder: (context, langProvider, _) {
+                _categoryRepo.updateLanguage(langProvider.t);
+                return MaterialApp(
+                  title: AppConstants.appName,
+                  debugShowCheckedModeBanner: false,
+                  theme:     AppTheme.lightTheme,
+                  darkTheme: AppTheme.darkTheme,
+                  // ← This is now driven by ThemeNotifier, guaranteed reactive
+                  themeMode: themeNotifier.isDark
+                      ? ThemeMode.dark
+                      : ThemeMode.light,
+                  home: _showOnboarding
+                      ? const OnboardingPage()
+                      : _showLock
+                      ? LockScreen(
+                    onUnlocked: () =>
+                        setState(() => _showLock = false),
+                  )
+                      : MainShell(
+                    isDark:            themeNotifier.isDark,
+                    currency:          _currencyCode,
+                    currencySymbol:    _currencySymbol,
+                    onThemeChanged:    themeNotifier.setDark,
+                    onCurrencyChanged: _handleCurrencyChange,
+                  ),
+                );
+              },
             );
           },
         ),

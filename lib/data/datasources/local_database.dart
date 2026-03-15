@@ -51,6 +51,13 @@ class LocalDatabase {
         )
       ''');
     }
+    if (oldVersion < 4) {
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS hidden_categories (
+          id TEXT PRIMARY KEY
+        )
+      ''');
+    }
   }
 
   Future<void> _onCreate(Database db, int version) async {
@@ -96,25 +103,56 @@ class LocalDatabase {
         type  TEXT NOT NULL DEFAULT 'both'
       )
     ''');
+    await db.execute('''
+      CREATE TABLE hidden_categories (
+        id TEXT PRIMARY KEY
+      )
+    ''');
   }
 
   // ── Custom Categories ─────────────────────────────────────
   Future<List<Map<String, dynamic>>> getCustomCategories() async {
     final db = await database;
-    // Ensure table exists regardless of migration state
     await db.execute('''
       CREATE TABLE IF NOT EXISTS custom_categories (
-        id    TEXT PRIMARY KEY,
-        name  TEXT NOT NULL,
-        emoji TEXT NOT NULL,
-        color INTEGER NOT NULL,
-        type  TEXT NOT NULL DEFAULT 'both'
+        id TEXT PRIMARY KEY, name TEXT NOT NULL,
+        emoji TEXT NOT NULL, color INTEGER NOT NULL,
+        type TEXT NOT NULL DEFAULT 'both'
       )
+    ''');
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS hidden_categories (id TEXT PRIMARY KEY)
     ''');
     return db.query('custom_categories', orderBy: 'name ASC');
   }
 
+  // ── Hidden default categories ─────────────────────────────
+  Future<Set<String>> getHiddenCategoryIds() async {
+    final db = await database;
+    await db.execute('CREATE TABLE IF NOT EXISTS hidden_categories (id TEXT PRIMARY KEY)');
+    final rows = await db.query('hidden_categories');
+    return rows.map((r) => r['id'] as String).toSet();
+  }
+
+  Future<void> hideCategory(String id) async {
+    final db = await database;
+    await db.insert('hidden_categories', {'id': id},
+        conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  Future<void> unhideAllCategories() async {
+    final db = await database;
+    await db.delete('hidden_categories');
+  }
+
   Future<void> insertCustomCategory(Map<String, dynamic> data) async {
+    final db = await database;
+    await db.insert('custom_categories', data,
+        conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  /// Upsert — inserts or replaces. Used for default category overrides.
+  Future<void> upsertCustomCategory(Map<String, dynamic> data) async {
     final db = await database;
     await db.insert('custom_categories', data,
         conflictAlgorithm: ConflictAlgorithm.replace);

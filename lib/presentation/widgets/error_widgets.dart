@@ -69,9 +69,9 @@ class _ErrorScreenState extends State<ErrorScreen>
                     height: 96,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: AppColors.expense.withOpacity(0.1),
+                      color: AppColors.expense.withValues(alpha: 0.1),
                       border: Border.all(
-                          color: AppColors.expense.withOpacity(0.3),
+                          color: AppColors.expense.withValues(alpha: 0.3),
                           width: 2),
                     ),
                     child: Icon(widget.icon,
@@ -95,7 +95,7 @@ class _ErrorScreenState extends State<ErrorScreen>
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 14,
-                    color: Colors.grey[500],
+                    color: AppColors.subTextLight,
                     height: 1.5,
                   ),
                 ),
@@ -113,7 +113,7 @@ class _ErrorScreenState extends State<ErrorScreen>
                         borderRadius: BorderRadius.circular(14),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.gold.withOpacity(0.3),
+                            color: AppColors.gold.withValues(alpha: 0.3),
                             blurRadius: 12,
                             offset: const Offset(0, 4),
                           )
@@ -193,7 +193,7 @@ class _EmptyStateState extends State<EmptyState>
 
   @override
   Widget build(BuildContext context) {
-    final color = widget.iconColor ?? Colors.grey[600]!;
+    final color = widget.iconColor ?? AppColors.subTextLight!;
 
     return FadeTransition(
       opacity: _fadeAnim,
@@ -210,9 +210,9 @@ class _EmptyStateState extends State<EmptyState>
                   height: 88,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: color.withOpacity(0.1),
+                    color: color.withValues(alpha: 0.1),
                     border: Border.all(
-                        color: color.withOpacity(0.2), width: 1.5),
+                        color: color.withValues(alpha: 0.2), width: 1.5),
                   ),
                   child: Icon(widget.icon, color: color, size: 40),
                 ),
@@ -232,7 +232,7 @@ class _EmptyStateState extends State<EmptyState>
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 13,
-                    color: Colors.grey[500],
+                    color: AppColors.subTextLight,
                     height: 1.5,
                   ),
                 ),
@@ -262,10 +262,10 @@ class ErrorBanner extends StatelessWidget {
       margin: const EdgeInsets.symmetric(vertical: 8),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.expense.withOpacity(0.08),
+        color: AppColors.expense.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(12),
         border:
-        Border.all(color: AppColors.expense.withOpacity(0.25)),
+        Border.all(color: AppColors.expense.withValues(alpha: 0.25)),
       ),
       child: Row(
         children: [
@@ -284,7 +284,7 @@ class ErrorBanner extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(
                     horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
-                  color: AppColors.expense.withOpacity(0.15),
+                  color: AppColors.expense.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Text('Retry',
@@ -358,9 +358,9 @@ class _ShimmerCardState extends State<ShimmerCard>
               AppColors.cardDark,
             ]
                 : [
-              AppColors.cardLight,
-              Colors.white,
-              AppColors.cardLight,
+              AppColors.borderLight,
+              AppColors.bgLight,
+              AppColors.borderLight,
             ],
           ),
         ),

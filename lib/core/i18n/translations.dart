@@ -16,7 +16,9 @@ class Translations {
   String get transactions=> const {'en':'Transactions','uz':'Tranzaksiyalar','ru':'Транзакции'}[_k]!;
   String get noTransactions => const {'en':'No transactions yet','uz':'Tranzaksiyalar yo\'q','ru':'Нет транзакций'}[_k]!;
   String get addFirst    => const {'en':'Tap + to add your first one','uz':'Birinchisini qo\'shish uchun + ni bosing','ru':'Нажмите + чтобы добавить первую'}[_k]!;
-  String get noBudget    => const {'en':'No budget set for this month.','uz':'Bu oy uchun byudjet belgilanmagan.','ru':'Бюджет на этот месяц не задан.'}[_k]!;
+  String get noBudget      => const {'en':'No budget set for this month.','uz':'Bu oy uchun byudjet belgilanmagan.','ru':'Бюджет на этот месяц не задан.'}[_k]!;
+  String get noBudgetTitle => const {'en':'No budget','uz':'Byudjet yo\'q','ru':'Бюджет не задан'}[_k]!;
+  String get noBudgetBody  => const {'en':'Tap to set a monthly budget','uz':'Oylik byudjet belgilash uchun bosing','ru':'Нажмите, чтобы задать бюджет'}[_k]!;
   String get setBudget   => const {'en':'Set Budget','uz':'Byudjet belgilash','ru':'Задать бюджет'}[_k]!;
   String get add         => const {'en':'Add',      'uz':'Qo\'shish',   'ru':'Добавить'}[_k]!;
 
@@ -68,9 +70,9 @@ class Translations {
   String get widgetOpacity  => const {'en':'Background opacity','uz':'Fon shaffofligi',      'ru':'Прозрачность фона'}[_k]!;
 
   // ── Savings
-  String get savingsGoals => const {'en':'Savings Goals', 'uz':'Tejamkorlik maqsadlari', 'ru':'Цели накоплений'}[_k]!;
+  String get savingsGoals => const {'en':"Savings", 'uz':"Jamg'arma", 'ru':'Копилка'}[_k]!;
   String get noSavings    => const {'en':'No goals yet',  'uz':'Hali maqsad yo\'q',     'ru':'Целей пока нет'}[_k]!;
-  String get noSavingsSub => const {'en':'Set a savings goal and track your progress', 'uz':'Tejamkorlik maqsad qo\'ying va rivojlanishni kuzating', 'ru':'Поставьте цель накопления'}[_k]!;
+  String get noSavingsSub => const {'en':'Set a savings goal and track your progress', 'uz':"Maqsad qo'ying va rivojlanishni kuzating", 'ru':'Поставьте цель накопления'}[_k]!;
   String get addGoal      => const {'en':'Add Goal',      'uz':'Maqsad qo\'shish',      'ru':'Добавить цель'}[_k]!;
 
   // ── Lock settings ─────────────────────────────────────
@@ -126,6 +128,14 @@ class Translations {
   String get catFamily     => const {'en':'Family',         'uz':'Oila',         'ru':'Семья'}[_k]!;
   String get catOther      => const {'en':'Other',          'uz':'Boshqa',       'ru':'Другое'}[_k]!;
 
+
+  // ── Category delete/reset ────────────────────────────────
+  String get deleteCategoryTitle  => const {'en':'Delete category?',      'uz':'Kategoriyani o\'chirish?',    'ru':'Удалить категорию?'}[_k]!;
+  String get deleteCategoryBody   => const {'en':'This category will be permanently deleted.', 'uz':'Bu kategoriya butunlay o\'chiriladi.', 'ru':'Категория будет удалена навсегда.'}[_k]!;
+  String get deleteDefaultTitle   => const {'en':'Hide category?',        'uz':'Kategoriyani yashirish?',     'ru':'Скрыть категорию?'}[_k]!;
+  String get deleteDefaultBody    => const {'en':'This category will be hidden from the list. You can restore it by resetting all categories.', 'uz':'Bu kategoriya ro\'yxatdan yashiriladi.', 'ru':'Категория будет скрыта из списка.'}[_k]!;
+  String get resetCategories      => const {'en':'Reset all to default',  'uz':'Hammasini tiklash',           'ru':'Сбросить всё'}[_k]!;
+  String get customiseDefault     => const {'en':'Customise default',     'uz':'Standartni sozlash',          'ru':'Настроить стандарт'}[_k]!;
   String _k_getter() {
     switch (language) {
       case AppLanguage.uz: return 'uz';

@@ -10,6 +10,7 @@ import '../blocs/transaction/transaction_bloc.dart';
 import '../blocs/budget/budget_bloc.dart';
 import '../blocs/category/category_bloc.dart';
 import '../../domain/entities/category_entity.dart';
+import '../../domain/entities/transaction_entity.dart';
 import '../widgets/transaction_tile.dart';
 import '../widgets/budget_progress_card.dart';
 import '../widgets/error_widgets.dart';
@@ -27,7 +28,8 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage>
     with SingleTickerProviderStateMixin {
   late DateTime _selectedMonth;
-  bool _historyExpanded = false;
+  bool   _historyExpanded = false;
+  String? _txFilter;   // null = all, 'income', 'expense'
   late AnimationController _expandCtrl;
   late Animation<double>   _expandAnim;
   late Animation<double>   _chevronAnim;
@@ -36,7 +38,9 @@ class _HomePageState extends State<HomePage>
   void initState() {
     super.initState();
     _selectedMonth = DateTime.now();
-    _loadData();
+    // postFrameCallback ensures BLoC providers are mounted before dispatch
+    // Without this, release builds silently drop the event
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadData());
     _expandCtrl = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 400));
     _expandAnim = CurvedAnimation(
@@ -129,6 +133,9 @@ class _HomePageState extends State<HomePage>
                           color: AppColors.income,
                           currencySymbol: widget.currencySymbol,
                           isDark: isDark,
+                          isActive: _txFilter == 'income',
+                          onTap: () => setState(() =>
+                          _txFilter = _txFilter == 'income' ? null : 'income'),
                         ),
                       ),
                       const SizedBox(width: 10),
@@ -140,6 +147,9 @@ class _HomePageState extends State<HomePage>
                           color: AppColors.expense,
                           currencySymbol: widget.currencySymbol,
                           isDark: isDark,
+                          isActive: _txFilter == 'expense',
+                          onTap: () => setState(() =>
+                          _txFilter = _txFilter == 'expense' ? null : 'expense'),
                         ),
                       ),
                     ]);
@@ -187,7 +197,15 @@ class _HomePageState extends State<HomePage>
                     if (txState is! TransactionLoaded) {
                       return const SizedBox.shrink();
                     }
-                    final txs   = txState.transactions;
+                    // Apply income/expense filter
+                    final allTxs = txState.transactions;
+                    final txs = _txFilter == null
+                        ? allTxs
+                        : allTxs.where((tx) =>
+                    (_txFilter == 'income'
+                        ? tx.type == TransactionType.income
+                        : tx.type == TransactionType.expense))
+                        .toList();
                     final count = txs.length;
 
                     return BlocBuilder<CategoryBloc, CategoryState>(
@@ -204,28 +222,16 @@ class _HomePageState extends State<HomePage>
                         Widget tileFor(int i) {
                           final tx  = txs[i];
                           final cat = findCat(tx.categoryId);
-                          return GestureDetector(
+                          return TransactionTile(
+                            transaction:    tx,
+                            category:       cat,
+                            index:          i,
+                            currencySymbol: widget.currencySymbol,
                             onTap: () => TransactionDetailPage.show(
                               ctx,
-                              transaction: tx,
-                              currencySymbol: widget.currencySymbol,
-                              category: cat,
-                              onEdit: () => Navigator.push(ctx,
-                                MaterialPageRoute(
-                                  builder: (_) => AddTransactionPage(
-                                    currencySymbol: widget.currencySymbol,
-                                    existing: tx,
-                                  ),
-                                ),
-                              ).then((_) => _loadData()),
-                              onDelete: () =>
-                                  _confirmDelete(ctx, tx.id, t),
-                            ),
-                            child: TransactionTile(
                               transaction:    tx,
-                              category:       cat,
-                              index:          i,
                               currencySymbol: widget.currencySymbol,
+                              category:       cat,
                               onEdit: () => Navigator.push(ctx,
                                 MaterialPageRoute(
                                   builder: (_) => AddTransactionPage(
@@ -237,6 +243,16 @@ class _HomePageState extends State<HomePage>
                               onDelete: () =>
                                   _confirmDelete(ctx, tx.id, t),
                             ),
+                            onEdit: () => Navigator.push(ctx,
+                              MaterialPageRoute(
+                                builder: (_) => AddTransactionPage(
+                                  currencySymbol: widget.currencySymbol,
+                                  existing: tx,
+                                ),
+                              ),
+                            ).then((_) => _loadData()),
+                            onDelete: () =>
+                                _confirmDelete(ctx, tx.id, t),
                           );
                         }
 
@@ -248,16 +264,60 @@ class _HomePageState extends State<HomePage>
                               mainAxisAlignment:
                               MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(
-                                  t.transactions,
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w800,
-                                    color: isDark
-                                        ? AppColors.textDark
-                                        : AppColors.textLight,
-                                    letterSpacing: -0.3,
-                                  ),
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      _txFilter == 'income'
+                                          ? t.income
+                                          : _txFilter == 'expense'
+                                          ? t.expense
+                                          : t.transactions,
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w800,
+                                        color: isDark
+                                            ? AppColors.textDark
+                                            : AppColors.textLight,
+                                        letterSpacing: -0.3,
+                                      ),
+                                    ),
+                                    if (_txFilter != null) ...[
+                                      const SizedBox(width: 8),
+                                      GestureDetector(
+                                        onTap: () => setState(() => _txFilter = null),
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 8, vertical: 3),
+                                          decoration: BoxDecoration(
+                                            color: (_txFilter == 'income'
+                                                ? AppColors.income
+                                                : AppColors.expense)
+                                                .withValues(alpha: 0.15),
+                                            borderRadius: BorderRadius.circular(20),
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(Icons.close_rounded,
+                                                  size: 12,
+                                                  color: _txFilter == 'income'
+                                                      ? AppColors.income
+                                                      : AppColors.expense),
+                                              const SizedBox(width: 3),
+                                              Text('clear',
+                                                  style: TextStyle(
+                                                      fontSize: 10,
+                                                      color: _txFilter == 'income'
+                                                          ? AppColors.income
+                                                          : AppColors.expense,
+                                                      fontWeight: FontWeight.w600)),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ],
                                 ),
                                 if (count > 3)
                                   GestureDetector(
@@ -630,6 +690,8 @@ class _StatPill extends StatelessWidget {
   final IconData icon;
   final Color color;
   final bool isDark;
+  final bool isActive;
+  final VoidCallback? onTap;
   const _StatPill({
     required this.label,
     required this.amount,
@@ -637,72 +699,85 @@ class _StatPill extends StatelessWidget {
     required this.color,
     required this.currencySymbol,
     required this.isDark,
+    this.isActive = false,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-          horizontal: 14, vertical: 14),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.cardDark : AppColors.cardLight,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isDark ? AppColors.borderDark : AppColors.borderLight,
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(
+            horizontal: 14, vertical: 14),
+        decoration: BoxDecoration(
+          color: isActive
+              ? color.withValues(alpha: 0.12)
+              : (isDark ? AppColors.cardDark : AppColors.cardLight),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isActive
+                ? color.withValues(alpha: 0.6)
+                : (isDark ? AppColors.borderDark : AppColors.borderLight),
+            width: isActive ? 1.5 : 1.0,
+          ),
+          boxShadow: isActive
+              ? [BoxShadow(
+              color: color.withValues(alpha: 0.2),
+              blurRadius: 12, offset: const Offset(0, 3))]
+              : isDark ? null : [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 12,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
-        boxShadow: isDark
-            ? null
-            : [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 12,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 34, height: 34,
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(10),
+        child: Row(
+          children: [
+            Container(
+              width: 34, height: 34,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(icon, color: color, size: 16),
             ),
-            child: Icon(icon, color: color, size: 16),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(label,
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(label,
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        color: isDark
+                            ? AppColors.subTextDark
+                            : AppColors.subTextLight,
+                        letterSpacing: 0.3,
+                      )),
+                  const SizedBox(height: 2),
+                  Text(
+                    CurrencyFormatter.formatCompact(
+                        amount, currencySymbol),
                     style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w600,
-                      color: isDark
-                          ? AppColors.subTextDark
-                          : AppColors.subTextLight,
-                      letterSpacing: 0.3,
-                    )),
-                const SizedBox(height: 2),
-                Text(
-                  CurrencyFormatter.formatCompact(
-                      amount, currencySymbol),
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w800,
-                    color: color,
-                    letterSpacing: -0.3,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      color: color,
+                      letterSpacing: -0.3,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
-      ),
-    );
+          ],
+        ),
+      ),  // AnimatedContainer
+    );  // GestureDetector
   }
 }
 
@@ -865,6 +940,7 @@ class _AddFab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FloatingActionButton(
+      heroTag: "fab_home",
       onPressed: onPressed,
       backgroundColor: AppColors.accent,
       foregroundColor: Colors.white,

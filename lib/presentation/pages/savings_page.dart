@@ -21,7 +21,8 @@ class _SavingsPageState extends State<SavingsPage> {
   @override
   void initState() {
     super.initState();
-    context.read<SavingBloc>().add(LoadSavings());
+    WidgetsBinding.instance.addPostFrameCallback(
+            (_) => context.read<SavingBloc>().add(LoadSavings()));
   }
 
   @override
@@ -1029,6 +1030,7 @@ class _PulseAddFabState extends State<_PulseAddFab>
           )],
         ),
         child: FloatingActionButton.extended(
+          heroTag: "fab_savings",
           onPressed: widget.onPressed,
           icon: const Icon(Iconsax.add),
           label: const Text('Maqsad', style: TextStyle(fontWeight: FontWeight.w700)),

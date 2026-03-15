@@ -10,6 +10,7 @@ class TransactionTile extends StatefulWidget {
   final TransactionEntity  transaction;
   final CategoryEntity?    category;
   final String             currencySymbol;
+  final VoidCallback?      onTap;
   final VoidCallback?      onEdit;
   final VoidCallback?      onDelete;
   final int                index;
@@ -19,6 +20,7 @@ class TransactionTile extends StatefulWidget {
     required this.transaction,
     required this.currencySymbol,
     this.category,
+    this.onTap,
     this.onEdit,
     this.onDelete,
     this.index = 0,
@@ -88,7 +90,7 @@ class _TransactionTileState extends State<TransactionTile>
             borderRadius: BorderRadius.circular(16),
             child: InkWell(
               borderRadius: BorderRadius.circular(16),
-              onTap: () {},
+              onTap: widget.onTap,
               child: Padding(
                 padding: const EdgeInsets.symmetric(
                     horizontal: 14, vertical: 12),

@@ -11,6 +11,7 @@ import '../../domain/entities/transaction_entity.dart';
 import '../blocs/transaction/transaction_bloc.dart';
 import '../blocs/category/category_bloc.dart';
 import '../widgets/error_widgets.dart';
+import 'category_transactions_page.dart';
 
 class StatsPage extends StatefulWidget {
   final String currencySymbol;
@@ -119,8 +120,8 @@ class _StatsPageState extends State<StatsPage>
 
               final sortedCategories = byCategory.entries.toList()
                 ..sort((a, b) => b.value.compareTo(a.value));
-              final topCategories =
-              sortedCategories.take(5).toList();
+              // Show ALL categories that have transactions, not just top 5
+              final topCategories = sortedCategories;
 
               final t = context.read<LanguageProvider>().t;
 
@@ -182,17 +183,18 @@ class _StatsPageState extends State<StatsPage>
                       _AnimatedSection(
                         anim: _masterAnim,
                         delay: 0.25,
-                        child: _SectionTitle(t.topCategories),
+                        child: _SectionTitle(t.spendingByCategory),
                       ),
                       const SizedBox(height: 12),
                       for (int i = 0; i < topCategories.length; i++)
                         _AnimatedSection(
                           anim: _masterAnim,
-                          delay: 0.3 + i * 0.08,
+                          delay: 0.3 + i * 0.06,
                           child: _buildCategoryRow(
                             entry: topCategories[i],
                             categories: categories,
                             totalExpense: txState.totalExpense,
+                            allTransactions: txState.transactions,
                           ),
                         ),
                     ],
@@ -212,6 +214,7 @@ class _StatsPageState extends State<StatsPage>
     required MapEntry<String, double> entry,
     required List<CategoryEntity> categories,
     required double totalExpense,
+    required List<TransactionEntity> allTransactions,
   }) {
     CategoryEntity? cat;
     try {
@@ -222,6 +225,11 @@ class _StatsPageState extends State<StatsPage>
         ? (entry.value / totalExpense).clamp(0.0, 1.0)
         : 0.0;
 
+    // Transactions for this specific category
+    final catTxs = allTransactions
+        .where((tx) => tx.categoryId == entry.key)
+        .toList();
+
     return _CategoryRow(
       name: cat?.name ?? 'Unknown',
       icon: cat?.icon ?? Iconsax.more_circle,
@@ -230,6 +238,16 @@ class _StatsPageState extends State<StatsPage>
       amount: entry.value,
       percentage: pct,
       currencySymbol: widget.currencySymbol,
+      onTap: cat != null ? () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => CategoryTransactionsPage(
+            category: cat!,
+            transactions: catTxs,
+            currencySymbol: widget.currencySymbol,
+          ),
+        ),
+      ) : null,
     );
   }
 }
@@ -562,12 +580,13 @@ class _CategoryPieChart extends StatelessWidget {
 
 // ── Category row with animated progress bar ───────────────────────────────────
 class _CategoryRow extends StatefulWidget {
-  final String   name;
-  final IconData icon;
-  final String?  emoji;
-  final Color    color;
-  final double   amount, percentage;
-  final String   currencySymbol;
+  final String        name;
+  final IconData      icon;
+  final String?       emoji;
+  final Color         color;
+  final double        amount, percentage;
+  final String        currencySymbol;
+  final VoidCallback? onTap;
   const _CategoryRow({
     required this.name,
     required this.icon,
@@ -576,6 +595,7 @@ class _CategoryRow extends StatefulWidget {
     required this.amount,
     required this.percentage,
     required this.currencySymbol,
+    this.onTap,
   });
 
   @override
@@ -610,75 +630,89 @@ class _CategoryRowState extends State<_CategoryRow>
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.cardDark : AppColors.surfaceLight,
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        onTap: widget.onTap,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-            color: isDark
-                ? AppColors.borderDark
-                : AppColors.borderLight),
-      ),
-      child: Column(
-        children: [
-          Row(
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 10),
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.cardDark : AppColors.surfaceLight,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+                color: isDark
+                    ? AppColors.borderDark
+                    : AppColors.borderLight),
+          ),
+          child: Column(
             children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: widget.color.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: widget.emoji != null
-                    ? Text(widget.emoji!, style: const TextStyle(fontSize: 16))
-                    : Icon(widget.icon, color: widget.color, size: 16),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(widget.name,
-                    style: const TextStyle(fontWeight: FontWeight.w600)),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
+              Row(
                 children: [
-                  Text(
-                    CurrencyFormatter.format(widget.amount, widget.currencySymbol),
-                    style: const TextStyle(
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.expense,
-                        fontSize: 13),
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: widget.color.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: widget.emoji != null
+                        ? Text(widget.emoji!, style: const TextStyle(fontSize: 16))
+                        : Icon(widget.icon, color: widget.color, size: 16),
                   ),
-                  Text(
-                    '${(widget.percentage * 100).toStringAsFixed(1)}%',
-                    style: TextStyle(
-                        fontSize: 11,
-                        color: isDark ? AppColors.subTextLight : AppColors.subTextLight),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(widget.name,
+                        style: const TextStyle(fontWeight: FontWeight.w600)),
                   ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        CurrencyFormatter.format(widget.amount, widget.currencySymbol),
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.expense,
+                            fontSize: 13),
+                      ),
+                      Text(
+                        '${(widget.percentage * 100).toStringAsFixed(1)}%',
+                        style: TextStyle(
+                            fontSize: 11,
+                            color: isDark ? AppColors.mutedDark : AppColors.mutedLight),
+                      ),
+                    ],
+                  ),
+                  if (widget.onTap != null) ...[
+                    const SizedBox(width: 8),
+                    Icon(Icons.chevron_right_rounded,
+                        size: 18,
+                        color: isDark ? AppColors.mutedDark : AppColors.mutedLight),
+                  ],
                 ],
+              ),
+              const SizedBox(height: 10),
+              // Animated progress bar
+              AnimatedBuilder(
+                animation: _barAnim,
+                builder: (_, __) => ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: LinearProgressIndicator(
+                    value: _barAnim.value,
+                    minHeight: 5,
+                    backgroundColor: isDark
+                        ? AppColors.borderDark
+                        : AppColors.borderLight,
+                    valueColor:
+                    AlwaysStoppedAnimation<Color>(widget.color),
+                  ),
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 10),
-          // Animated progress bar
-          AnimatedBuilder(
-            animation: _barAnim,
-            builder: (_, __) => ClipRRect(
-              borderRadius: BorderRadius.circular(4),
-              child: LinearProgressIndicator(
-                value: _barAnim.value,
-                minHeight: 5,
-                backgroundColor: isDark
-                    ? AppColors.borderDark
-                    : AppColors.borderLight,
-                valueColor:
-                AlwaysStoppedAnimation<Color>(widget.color),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+        ), // Container
+      ), // InkWell
+    ); // Material
   }
 }

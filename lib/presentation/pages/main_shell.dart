@@ -35,12 +35,16 @@ class MainShell extends StatefulWidget {
 class _MainShellState extends State<MainShell> {
   int _currentIndex = 0;
 
-  @override
-  Widget build(BuildContext context) {
-    final t      = context.watch<LanguageProvider>().t;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+  // ── Pages are built ONCE and kept alive — never recreated on rebuild ─────
+  // This is the critical fix: building pages inside build() caused:
+  //   1. HomePage to recreate → initState fires → postFrameCallback on dead widget
+  //   2. SettingsPage to recreate → onThemeChanged closure stale in release AOT
+  late final List<Widget> _pages;
 
-    final pages = [
+  @override
+  void initState() {
+    super.initState();
+    _pages = [
       HomePage(currencySymbol: widget.currencySymbol),
       StatsPage(currencySymbol: widget.currencySymbol),
       BlocProvider(
@@ -56,6 +60,12 @@ class _MainShellState extends State<MainShell> {
         onCurrencyChanged: widget.onCurrencyChanged,
       ),
     ];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t      = context.watch<LanguageProvider>().t;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final navItems = [
       _NavItem(icon: Iconsax.home,       activeIcon: Iconsax.home_2,    label: t.home),
@@ -65,16 +75,10 @@ class _MainShellState extends State<MainShell> {
     ];
 
     return Scaffold(
-      body: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 200),
-        switchInCurve: Curves.easeOut,
-        switchOutCurve: Curves.easeIn,
-        transitionBuilder: (child, anim) =>
-            FadeTransition(opacity: anim, child: child),
-        child: KeyedSubtree(
-          key: ValueKey(_currentIndex),
-          child: pages[_currentIndex],
-        ),
+      body: IndexedStack(
+        // IndexedStack keeps all pages alive AND mounted — no recreation ever
+        index: _currentIndex,
+        children: _pages,
       ),
       bottomNavigationBar: _BottomNav(
         currentIndex: _currentIndex,
@@ -187,6 +191,7 @@ class _NavButtonState extends State<_NavButton>
   @override
   Widget build(BuildContext context) {
     final active = widget.active;
+    final isDark = widget.isDark;
     return GestureDetector(
       onTap: widget.onTap,
       behavior: HitTestBehavior.opaque,
@@ -205,7 +210,9 @@ class _NavButtonState extends State<_NavButton>
                   horizontal: 14, vertical: 5),
               decoration: BoxDecoration(
                 color: active
-                    ? AppColors.accent.withValues(alpha: 0.12)
+                    ? (isDark
+                    ? AppColors.amber.withValues(alpha: 0.15)
+                    : AppColors.navyText.withValues(alpha: 0.08))
                     : Colors.transparent,
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -213,10 +220,10 @@ class _NavButtonState extends State<_NavButton>
                 active ? widget.item.activeIcon : widget.item.icon,
                 size: 20,
                 color: active
-                    ? AppColors.accent
-                    : (widget.isDark
-                    ? Colors.grey[600]
-                    : Colors.grey[400]),
+                    ? (isDark ? AppColors.amber : AppColors.navyText)
+                    : (isDark
+                    ? AppColors.mutedDark
+                    : AppColors.mutedLight),
               ),
             ),
             const SizedBox(height: 2),
@@ -227,10 +234,10 @@ class _NavButtonState extends State<_NavButton>
                 fontWeight:
                 active ? FontWeight.w700 : FontWeight.w500,
                 color: active
-                    ? AppColors.accent
-                    : (widget.isDark
-                    ? Colors.grey[600]
-                    : Colors.grey[400]),
+                    ? (isDark ? AppColors.amber : AppColors.navyText)
+                    : (isDark
+                    ? AppColors.mutedDark
+                    : AppColors.mutedLight),
               ),
               child: Text(widget.item.label),
             ),

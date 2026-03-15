@@ -10,8 +10,8 @@ import '../../core/i18n/translations.dart';
 import '../../core/services/notification_service.dart';
 import '../../core/services/app_lock_service.dart';
 import '../../data/datasources/local_database.dart';
-import 'category_page.dart';
 import 'lock_screen.dart';
+import 'category_page.dart';
 import '../blocs/category/category_bloc.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -116,23 +116,7 @@ class _SettingsPageState extends State<SettingsPage> {
     }
   }
 
-  Future<void> _sendTestNotification() async {
-    await NotificationService.instance.sendTestNotification(
-      balance: 150000,
-      totalExpense: 50000,
-      budgetLimit: 200000,
-      currencySymbol: _currencySymbol,
-    );
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Test xabarnoma yuborildi! 🔔'),
-          backgroundColor: AppColors.gold,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    }
-  }
+
 
   String get _currencySymbol {
     return AppConstants.currencies.firstWhere(
@@ -202,7 +186,8 @@ class _SettingsPageState extends State<SettingsPage> {
                 iconColor: AppColors.gold,
                 title: t.darkMode,
                 trailing: Switch(
-                  value: widget.isDark,
+                  // Read from Theme directly — always in sync in release
+                  value: Theme.of(context).brightness == Brightness.dark,
                   onChanged: widget.onThemeChanged,
                   activeColor: AppColors.amber,
                 ),
@@ -239,14 +224,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       size: 16, color: AppColors.gold),
                   onTap: _pickTime,
                 ),
-                // Test button
-                _SettingsTile(
-                  icon: Iconsax.notification_bing,
-                  iconColor: AppColors.gold,
-                  title: t.testNotif,
-                  subtitle: t.testNotifSub,
-                  onTap: _sendTestNotification,
-                ),
+
               ],
             ]),
             const SizedBox(height: 20),

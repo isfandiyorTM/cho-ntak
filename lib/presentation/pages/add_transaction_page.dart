@@ -54,7 +54,8 @@ class _AddTransactionPageState extends State<AddTransactionPage>
         parent: _slideCtrl, curve: Curves.easeOutCubic));
     _slideCtrl.forward();
 
-    context.read<CategoryBloc>().add(LoadCategories());
+    WidgetsBinding.instance.addPostFrameCallback(
+            (_) => context.read<CategoryBloc>().add(LoadCategories()));
     if (_isEditing) {
       final e = widget.existing!;
       _titleCtrl.text     = e.title;
