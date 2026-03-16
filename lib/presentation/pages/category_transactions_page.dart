@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../core/i18n/language_provider.dart';
 import 'package:iconsax/iconsax.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/currency_formatter.dart';
@@ -23,6 +25,7 @@ class CategoryTransactionsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t      = context.watch<LanguageProvider>().t;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final color  = category.color;
 
@@ -107,7 +110,7 @@ class CategoryTransactionsPage extends StatelessWidget {
                 children: [
                   if (income > 0)
                     Expanded(child: _SummaryCard(
-                      label: 'Daromad',
+                      label: t.income,
                       amount: income,
                       color: AppColors.income,
                       currencySymbol: currencySymbol,
@@ -117,7 +120,7 @@ class CategoryTransactionsPage extends StatelessWidget {
                     const SizedBox(width: 10),
                   if (expense > 0)
                     Expanded(child: _SummaryCard(
-                      label: 'Xarajat',
+                      label: t.expense,
                       amount: expense,
                       color: AppColors.expense,
                       currencySymbol: currencySymbol,

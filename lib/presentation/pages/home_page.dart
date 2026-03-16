@@ -30,6 +30,12 @@ class _HomePageState extends State<HomePage>
   late DateTime _selectedMonth;
   bool   _historyExpanded = false;
   String? _txFilter;   // null = all, 'income', 'expense'
+  String  _searchQuery  = '';
+  bool    _searchActive = false;
+  final   _searchCtrl   = TextEditingController();
+  final   _searchFocus  = FocusNode();
+  final   _scrollCtrl   = ScrollController();
+  final   _searchKey    = GlobalKey();
   late AnimationController _expandCtrl;
   late Animation<double>   _expandAnim;
   late Animation<double>   _chevronAnim;
@@ -51,7 +57,13 @@ class _HomePageState extends State<HomePage>
   }
 
   @override
-  void dispose() { _expandCtrl.dispose(); super.dispose(); }
+  void dispose() {
+    _expandCtrl.dispose();
+    _searchCtrl.dispose();
+    _searchFocus.dispose();
+    _scrollCtrl.dispose();
+    super.dispose();
+  }
 
   void _loadData() {
     context.read<TransactionBloc>().add(LoadTransactions(
@@ -76,359 +88,464 @@ class _HomePageState extends State<HomePage>
 
   @override
   Widget build(BuildContext context) {
-    final t      = context.watch<LanguageProvider>().t;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final t           = context.watch<LanguageProvider>().t;
+    final isDark      = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       backgroundColor:
       isDark ? AppColors.bgDark : AppColors.bgLight,
-      body: CustomScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        slivers: [
-          // ── Hero header ─────────────────────────────
-          SliverToBoxAdapter(
-            child: _HeroCard(
-              currencySymbol: widget.currencySymbol,
-              selectedMonth: _selectedMonth,
-              onPrev: () => _changeMonth(-1),
-              onNext: () => _changeMonth(1),
-              t: t,
-              isDark: isDark,
-            ),
-          ),
-
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-            sliver: SliverList(
-              delegate: SliverChildListDelegate([
-
-                // ── Income / Expense ───────────────────
-                BlocBuilder<TransactionBloc, TransactionState>(
-                  builder: (ctx, state) {
-                    if (state is TransactionLoading ||
-                        state is TransactionInitial) {
-                      return const HomeLoadingSkeleton();
-                    }
-                    if (state is TransactionError) {
-                      return ErrorScreen(
-                        title: 'Xato',
-                        message: state.message,
-                        onRetry: () {
-                          final n = DateTime.now();
-                          ctx.read<TransactionBloc>().add(
-                              LoadTransactions(
-                                  month: n.month, year: n.year));
-                        },
-                      );
-                    }
-                    if (state is! TransactionLoaded) {
-                      return const SizedBox.shrink();
-                    }
-                    return Row(children: [
-                      Expanded(
-                        child: _StatPill(
-                          label: t.income,
-                          amount: state.totalIncome,
-                          icon: Icons.south_rounded,
-                          color: AppColors.income,
-                          currencySymbol: widget.currencySymbol,
-                          isDark: isDark,
-                          isActive: _txFilter == 'income',
-                          onTap: () => setState(() =>
-                          _txFilter = _txFilter == 'income' ? null : 'income'),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: _StatPill(
-                          label: t.expense,
-                          amount: state.totalExpense,
-                          icon: Icons.north_rounded,
-                          color: AppColors.expense,
-                          currencySymbol: widget.currencySymbol,
-                          isDark: isDark,
-                          isActive: _txFilter == 'expense',
-                          onTap: () => setState(() =>
-                          _txFilter = _txFilter == 'expense' ? null : 'expense'),
-                        ),
-                      ),
-                    ]);
-                  },
+      resizeToAvoidBottomInset: false,  // We handle insets manually
+      body: AnimatedPadding(
+        duration: const Duration(milliseconds: 150),
+        curve: Curves.easeOut,
+        padding: EdgeInsets.only(
+          bottom: _searchActive
+              ? MediaQuery.of(context).viewInsets.bottom
+              : 0,
+        ),
+        child: RefreshIndicator(
+          onRefresh: () async {
+            _loadData();
+            await Future.delayed(const Duration(milliseconds: 800));
+          },
+          color: AppColors.amber,
+          backgroundColor: isDark ? AppColors.cardDark : AppColors.surfaceLight,
+          displacement: 60,
+          child: CustomScrollView(
+            controller: _scrollCtrl,
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: [
+              // ── Hero header ─────────────────────────────
+              SliverToBoxAdapter(
+                child: _HeroCard(
+                  currencySymbol: widget.currencySymbol,
+                  selectedMonth: _selectedMonth,
+                  onPrev: () => _changeMonth(-1),
+                  onNext: () => _changeMonth(1),
+                  t: t,
+                  isDark: isDark,
                 ),
-                const SizedBox(height: 14),
+              ),
 
-                // ── Budget ─────────────────────────────
-                BlocBuilder<BudgetBloc, BudgetState>(
-                  builder: (ctx, state) {
-                    if (state is BudgetLoaded) {
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 14),
-                        child: BudgetProgressCard(
-                          budget: state.budget,
-                          currencySymbol: widget.currencySymbol,
-                          t: t,
-                        ),
-                      );
-                    }
-                    if (state is BudgetNotSet) {
-                      return _BudgetBanner(
-                          month: _selectedMonth.month,
-                          year: _selectedMonth.year,
-                          t: t,
-                          isDark: isDark);
-                    }
-                    if (state is BudgetError) {
-                      return ErrorBanner(
-                        message: 'Byudjet yuklanmadi',
-                        onRetry: () {
-                          final n = DateTime.now();
-                          ctx.read<BudgetBloc>().add(
-                              LoadBudget(month: n.month, year: n.year));
-                        },
-                      );
-                    }
-                    return const SizedBox.shrink();
-                  },
-                ),
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+                sliver: SliverList(
+                  delegate: SliverChildListDelegate([
 
-                // ── Transactions ───────────────────────
-                BlocBuilder<TransactionBloc, TransactionState>(
-                  builder: (ctx, txState) {
-                    if (txState is! TransactionLoaded) {
-                      return const SizedBox.shrink();
-                    }
-                    // Apply income/expense filter
-                    final allTxs = txState.transactions;
-                    final txs = _txFilter == null
-                        ? allTxs
-                        : allTxs.where((tx) =>
-                    (_txFilter == 'income'
-                        ? tx.type == TransactionType.income
-                        : tx.type == TransactionType.expense))
-                        .toList();
-                    final count = txs.length;
-
-                    return BlocBuilder<CategoryBloc, CategoryState>(
-                      builder: (ctx2, catState) {
-                        final cats = catState is CategoryLoaded
-                            ? catState.categories
-                            : <dynamic>[];
-
-                        CategoryEntity? findCat(String id) =>
-                            cats.cast<dynamic>().firstWhere(
-                                    (c) => c.id == id,
-                                orElse: () => null);
-
-                        Widget tileFor(int i) {
-                          final tx  = txs[i];
-                          final cat = findCat(tx.categoryId);
-                          return TransactionTile(
-                            transaction:    tx,
-                            category:       cat,
-                            index:          i,
-                            currencySymbol: widget.currencySymbol,
-                            onTap: () => TransactionDetailPage.show(
-                              ctx,
-                              transaction:    tx,
-                              currencySymbol: widget.currencySymbol,
-                              category:       cat,
-                              onEdit: () => Navigator.push(ctx,
-                                MaterialPageRoute(
-                                  builder: (_) => AddTransactionPage(
-                                    currencySymbol: widget.currencySymbol,
-                                    existing: tx,
-                                  ),
-                                ),
-                              ).then((_) => _loadData()),
-                              onDelete: () =>
-                                  _confirmDelete(ctx, tx.id, t),
-                            ),
-                            onEdit: () => Navigator.push(ctx,
-                              MaterialPageRoute(
-                                builder: (_) => AddTransactionPage(
-                                  currencySymbol: widget.currencySymbol,
-                                  existing: tx,
-                                ),
-                              ),
-                            ).then((_) => _loadData()),
-                            onDelete: () =>
-                                _confirmDelete(ctx, tx.id, t),
+                    // ── Income / Expense ───────────────────
+                    BlocBuilder<TransactionBloc, TransactionState>(
+                      builder: (ctx, state) {
+                        if (state is TransactionLoading ||
+                            state is TransactionInitial) {
+                          return const HomeLoadingSkeleton();
+                        }
+                        if (state is TransactionError) {
+                          return ErrorScreen(
+                            title: 'Xato',
+                            message: state.message,
+                            onRetry: () {
+                              final n = DateTime.now();
+                              ctx.read<TransactionBloc>().add(
+                                  LoadTransactions(
+                                      month: n.month, year: n.year));
+                            },
                           );
                         }
+                        if (state is! TransactionLoaded) {
+                          return const SizedBox.shrink();
+                        }
+                        return Row(children: [
+                          Expanded(
+                            child: _StatPill(
+                              label: t.income,
+                              amount: state.totalIncome,
+                              icon: Icons.south_rounded,
+                              color: AppColors.income,
+                              currencySymbol: widget.currencySymbol,
+                              isDark: isDark,
+                              isActive: _txFilter == 'income',
+                              onTap: () => setState(() =>
+                              _txFilter = _txFilter == 'income' ? null : 'income'),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: _StatPill(
+                              label: t.expense,
+                              amount: state.totalExpense,
+                              icon: Icons.north_rounded,
+                              color: AppColors.expense,
+                              currencySymbol: widget.currencySymbol,
+                              isDark: isDark,
+                              isActive: _txFilter == 'expense',
+                              onTap: () => setState(() =>
+                              _txFilter = _txFilter == 'expense' ? null : 'expense'),
+                            ),
+                          ),
+                        ]);
+                      },
+                    ),
+                    const SizedBox(height: 14),
 
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Header
-                            Row(
-                              mainAxisAlignment:
-                              MainAxisAlignment.spaceBetween,
-                              children: [
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(
-                                      _txFilter == 'income'
-                                          ? t.income
-                                          : _txFilter == 'expense'
-                                          ? t.expense
-                                          : t.transactions,
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w800,
-                                        color: isDark
-                                            ? AppColors.textDark
-                                            : AppColors.textLight,
-                                        letterSpacing: -0.3,
+                    // ── Budget ─────────────────────────────
+                    BlocBuilder<BudgetBloc, BudgetState>(
+                      builder: (ctx, state) {
+                        if (state is BudgetLoaded) {
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 14),
+                            child: BudgetProgressCard(
+                              budget: state.budget,
+                              currencySymbol: widget.currencySymbol,
+                              t: t,
+                            ),
+                          );
+                        }
+                        if (state is BudgetNotSet) {
+                          return _BudgetBanner(
+                              month: _selectedMonth.month,
+                              year: _selectedMonth.year,
+                              t: t,
+                              isDark: isDark);
+                        }
+                        if (state is BudgetError) {
+                          return ErrorBanner(
+                            message: 'Byudjet yuklanmadi',
+                            onRetry: () {
+                              final n = DateTime.now();
+                              ctx.read<BudgetBloc>().add(
+                                  LoadBudget(month: n.month, year: n.year));
+                            },
+                          );
+                        }
+                        return const SizedBox.shrink();
+                      },
+                    ),
+
+                    // ── Transactions ───────────────────────
+                    BlocBuilder<TransactionBloc, TransactionState>(
+                      builder: (ctx, txState) {
+                        if (txState is! TransactionLoaded) {
+                          return const SizedBox.shrink();
+                        }
+                        // Apply income/expense filter + search
+                        final allTxs = txState.transactions;
+                        var txs = _txFilter == null
+                            ? allTxs
+                            : allTxs.where((tx) =>
+                        (_txFilter == 'income'
+                            ? tx.type == TransactionType.income
+                            : tx.type == TransactionType.expense))
+                            .toList();
+                        if (_searchQuery.isNotEmpty) {
+                          final q = _searchQuery.toLowerCase();
+                          txs = txs.where((tx) =>
+                          tx.title.toLowerCase().contains(q) ||
+                              (tx.note?.toLowerCase().contains(q) ?? false))
+                              .toList();
+                        }
+                        final count = txs.length;
+
+                        return BlocBuilder<CategoryBloc, CategoryState>(
+                          builder: (ctx2, catState) {
+                            final cats = catState is CategoryLoaded
+                                ? catState.categories
+                                : <dynamic>[];
+
+                            CategoryEntity? findCat(String id) =>
+                                cats.cast<dynamic>().firstWhere(
+                                        (c) => c.id == id,
+                                    orElse: () => null);
+
+                            Widget tileFor(int i) {
+                              final tx  = txs[i];
+                              final cat = findCat(tx.categoryId);
+                              return Dismissible(
+                                key: ValueKey(tx.id),
+                                direction: DismissDirection.endToStart,
+                                confirmDismiss: (_) async {
+                                  // Quick haptic on swipe
+                                  bool confirmed = false;
+                                  await showDialog(
+                                    context: ctx,
+                                    builder: (_) => AlertDialog(
+                                      title: Text(t.deleteTitle),
+                                      content: Text(t.deleteBody),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () => Navigator.pop(ctx, false),
+                                          child: Text(t.cancel),
+                                        ),
+                                        TextButton(
+                                          onPressed: () {
+                                            confirmed = true;
+                                            Navigator.pop(ctx, true);
+                                          },
+                                          child: Text(t.delete,
+                                              style: const TextStyle(
+                                                  color: AppColors.expense)),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                  return confirmed;
+                                },
+                                onDismissed: (_) {
+                                  ctx.read<TransactionBloc>().add(
+                                    DeleteTransactionEvent(
+                                      tx.id,
+                                      month: _selectedMonth.month,
+                                      year:  _selectedMonth.year,
+                                    ),
+                                  );
+                                },
+                                background: Container(
+                                  margin: const EdgeInsets.only(bottom: 8),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.expense.withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(
+                                        color: AppColors.expense.withValues(alpha: 0.4)),
+                                  ),
+                                  alignment: Alignment.centerRight,
+                                  padding: const EdgeInsets.only(right: 20),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      const Icon(Icons.delete_outline_rounded,
+                                          color: AppColors.expense, size: 24),
+                                      const SizedBox(height: 4),
+                                      Text(t.delete,
+                                          style: const TextStyle(
+                                              color: AppColors.expense,
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w700)),
+                                    ],
+                                  ),
+                                ),
+                                child: TransactionTile(
+                                  transaction:    tx,
+                                  category:       cat,
+                                  index:          i,
+                                  currencySymbol: widget.currencySymbol,
+                                  onTap: () => TransactionDetailPage.show(
+                                    ctx,
+                                    transaction:    tx,
+                                    currencySymbol: widget.currencySymbol,
+                                    category:       cat,
+                                    onEdit: () => Navigator.push(ctx,
+                                      MaterialPageRoute(
+                                        builder: (_) => AddTransactionPage(
+                                          currencySymbol: widget.currencySymbol,
+                                          existing: tx,
+                                        ),
+                                      ),
+                                    ).then((_) => _loadData()),
+                                    onDelete: () =>
+                                        _confirmDelete(ctx, tx.id, t),
+                                  ),
+                                  onEdit: () => Navigator.push(ctx,
+                                    MaterialPageRoute(
+                                      builder: (_) => AddTransactionPage(
+                                        currencySymbol: widget.currencySymbol,
+                                        existing: tx,
                                       ),
                                     ),
-                                    if (_txFilter != null) ...[
+                                  ).then((_) => _loadData()),
+                                  onDelete: () =>
+                                      _confirmDelete(ctx, tx.id, t),
+                                ),  // TransactionTile
+                              );  // Dismissible
+                            }
+
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // ── Header: title + Hammasi + search icon
+                                SizedBox(key: _searchKey, height: 0),
+                                AnimatedCrossFade(
+                                  duration: const Duration(milliseconds: 250),
+                                  crossFadeState: _searchActive
+                                      ? CrossFadeState.showSecond
+                                      : CrossFadeState.showFirst,
+                                  sizeCurve: Curves.easeInOut,
+                                  firstChild: Row(
+                                    children: [
+                                      Text(
+                                        _txFilter == 'income' ? t.income
+                                            : _txFilter == 'expense' ? t.expense : t.transactions,
+                                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800,
+                                            letterSpacing: -0.3,
+                                            color: isDark ? AppColors.textDark : AppColors.textLight),
+                                      ),
+                                      if (_txFilter != null) ...[
+                                        const SizedBox(width: 8),
+                                        GestureDetector(
+                                          onTap: () => setState(() => _txFilter = null),
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                            decoration: BoxDecoration(
+                                              color: (_txFilter == 'income' ? AppColors.income : AppColors.expense)
+                                                  .withValues(alpha: 0.15),
+                                              borderRadius: BorderRadius.circular(20),
+                                            ),
+                                            child: Row(mainAxisSize: MainAxisSize.min, children: [
+                                              Icon(Icons.close_rounded, size: 12,
+                                                  color: _txFilter == 'income' ? AppColors.income : AppColors.expense),
+                                              const SizedBox(width: 3),
+                                              Text(t.clear, style: TextStyle(fontSize: 10,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: _txFilter == 'income' ? AppColors.income : AppColors.expense)),
+                                            ]),
+                                          ),
+                                        ),
+                                      ],
+                                      const Spacer(),
+                                      if (count > 3)
+                                        GestureDetector(
+                                          onTap: _toggleHistory,
+                                          child: AnimatedContainer(
+                                            duration: const Duration(milliseconds: 200),
+                                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                            decoration: BoxDecoration(
+                                              color: _historyExpanded
+                                                  ? AppColors.accent.withValues(alpha: 0.12)
+                                                  : (isDark ? AppColors.cardDark : AppColors.cardLight),
+                                              borderRadius: BorderRadius.circular(20),
+                                              border: Border.all(color: _historyExpanded
+                                                  ? AppColors.accent.withValues(alpha: 0.4)
+                                                  : (isDark ? AppColors.borderDark : AppColors.borderLight)),
+                                            ),
+                                            child: Row(mainAxisSize: MainAxisSize.min, children: [
+                                              Text(_historyExpanded ? t.close : '${t.showAll} ($count)',
+                                                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600,
+                                                      color: _historyExpanded ? AppColors.accent
+                                                          : (isDark ? AppColors.subTextDark : AppColors.subTextLight))),
+                                              const SizedBox(width: 3),
+                                              RotationTransition(turns: _chevronAnim,
+                                                  child: Icon(Icons.keyboard_arrow_down_rounded, size: 14,
+                                                      color: _historyExpanded ? AppColors.accent
+                                                          : (isDark ? AppColors.subTextDark : AppColors.subTextLight))),
+                                            ]),
+                                          ),
+                                        ),
                                       const SizedBox(width: 8),
                                       GestureDetector(
-                                        onTap: () => setState(() => _txFilter = null),
+                                        onTap: () {
+                                          setState(() { _searchActive = true; _searchQuery = ''; });
+                                          Future.delayed(const Duration(milliseconds: 100),
+                                                  () { if (mounted) _searchFocus.requestFocus(); });
+                                        },
                                         child: Container(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 8, vertical: 3),
+                                          width: 34, height: 34,
                                           decoration: BoxDecoration(
-                                            color: (_txFilter == 'income'
-                                                ? AppColors.income
-                                                : AppColors.expense)
-                                                .withValues(alpha: 0.15),
-                                            borderRadius: BorderRadius.circular(20),
+                                            color: isDark ? AppColors.cardDark : AppColors.bgLight,
+                                            borderRadius: BorderRadius.circular(10),
+                                            border: Border.all(color: isDark
+                                                ? AppColors.borderDark : AppColors.borderLight),
                                           ),
-                                          child: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Icon(Icons.close_rounded,
-                                                  size: 12,
-                                                  color: _txFilter == 'income'
-                                                      ? AppColors.income
-                                                      : AppColors.expense),
-                                              const SizedBox(width: 3),
-                                              Text('clear',
-                                                  style: TextStyle(
-                                                      fontSize: 10,
-                                                      color: _txFilter == 'income'
-                                                          ? AppColors.income
-                                                          : AppColors.expense,
-                                                      fontWeight: FontWeight.w600)),
-                                            ],
-                                          ),
+                                          child: Icon(Icons.search_rounded, size: 16,
+                                              color: isDark ? AppColors.mutedDark : AppColors.mutedLight),
                                         ),
                                       ),
                                     ],
-                                  ],
-                                ),
-                                if (count > 3)
-                                  GestureDetector(
-                                    onTap: _toggleHistory,
-                                    child: AnimatedContainer(
-                                      duration: const Duration(
-                                          milliseconds: 200),
-                                      padding:
-                                      const EdgeInsets.symmetric(
-                                          horizontal: 12,
-                                          vertical: 6),
-                                      decoration: BoxDecoration(
-                                        color: _historyExpanded
-                                            ? AppColors.accent
-                                            .withValues(alpha: 0.12)
-                                            : (isDark
-                                            ? AppColors.cardDark
-                                            : AppColors.cardLight),
-                                        borderRadius:
-                                        BorderRadius.circular(20),
-                                        border: Border.all(
-                                          color: _historyExpanded
-                                              ? AppColors.accent
-                                              .withValues(alpha: 0.4)
-                                              : (isDark
-                                              ? AppColors.borderDark
-                                              : AppColors.borderLight),
+                                  ),
+                                  secondChild: Row(
+                                    children: [
+                                      Expanded(
+                                        child: Container(
+                                          height: 40,
+                                          decoration: BoxDecoration(
+                                            color: isDark ? AppColors.cardDark : AppColors.surfaceLight,
+                                            borderRadius: BorderRadius.circular(12),
+                                            border: Border.all(
+                                                color: _searchQuery.isNotEmpty
+                                                    ? AppColors.amber.withValues(alpha: 0.6)
+                                                    : isDark ? AppColors.borderDark : AppColors.borderLight,
+                                                width: _searchQuery.isNotEmpty ? 1.5 : 1),
+                                          ),
+                                          child: TextField(
+                                            controller: _searchCtrl,
+                                            focusNode: _searchFocus,
+                                            onChanged: (v) => setState(() => _searchQuery = v),
+                                            style: TextStyle(fontSize: 14,
+                                                color: isDark ? Colors.white : AppColors.navyText),
+                                            decoration: InputDecoration(
+                                              hintText: 'Qidirish...',
+                                              hintStyle: TextStyle(fontSize: 14,
+                                                  color: isDark ? AppColors.mutedDark : AppColors.mutedLight),
+                                              prefixIcon: Icon(Icons.search_rounded, size: 16,
+                                                  color: _searchQuery.isNotEmpty ? AppColors.amber
+                                                      : isDark ? AppColors.mutedDark : AppColors.mutedLight),
+                                              suffixIcon: _searchQuery.isNotEmpty
+                                                  ? GestureDetector(
+                                                  onTap: () { setState(() => _searchQuery = ''); _searchCtrl.clear(); },
+                                                  child: Icon(Icons.close_rounded, size: 14,
+                                                      color: isDark ? AppColors.mutedDark : AppColors.mutedLight))
+                                                  : null,
+                                              border: InputBorder.none,
+                                              contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                                            ),
+                                          ),
                                         ),
                                       ),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Text(
-                                            _historyExpanded
-                                                ? 'Yopish'
-                                                : 'Hammasi ($count)',
-                                            style: TextStyle(
-                                              fontSize: 11,
-                                              fontWeight: FontWeight.w600,
-                                              color: _historyExpanded
-                                                  ? AppColors.accent
-                                                  : (isDark
-                                                  ? AppColors
-                                                  .subTextDark
-                                                  : AppColors
-                                                  .subTextLight),
-                                            ),
-                                          ),
-                                          const SizedBox(width: 3),
-                                          RotationTransition(
-                                            turns: _chevronAnim,
-                                            child: Icon(
-                                              Icons
-                                                  .keyboard_arrow_down_rounded,
-                                              size: 14,
-                                              color: _historyExpanded
-                                                  ? AppColors.accent
-                                                  : (isDark
-                                                  ? AppColors
-                                                  .subTextDark
-                                                  : AppColors
-                                                  .subTextLight),
-                                            ),
-                                          ),
-                                        ],
+                                      const SizedBox(width: 10),
+                                      GestureDetector(
+                                        onTap: () {
+                                          setState(() {
+                                            _searchActive = false; _searchQuery = '';
+                                            _searchCtrl.clear(); _searchFocus.unfocus();
+                                          });
+                                        },
+                                        child: Text(t.cancelShort, style: TextStyle(fontSize: 13,
+                                            fontWeight: FontWeight.w500,
+                                            color: isDark ? AppColors.mutedDark : AppColors.mutedLight)),
                                       ),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                            const SizedBox(height: 12),
-
-                            if (txs.isEmpty)
-                              _EmptyTxState(isDark: isDark, t: t)
-                            else ...[
-                              // Always show first 3
-                              for (int i = 0;
-                              i < txs.length.clamp(0, 3);
-                              i++)
-                                tileFor(i),
-
-                              // Expandable rest
-                              if (count > 3)
-                                SizeTransition(
-                                  sizeFactor: _expandAnim,
-                                  axisAlignment: -1,
-                                  child: FadeTransition(
-                                    opacity: _expandAnim,
-                                    child: Column(
-                                      children: [
-                                        for (int i = 3;
-                                        i < count;
-                                        i++)
-                                          tileFor(i),
-                                      ],
-                                    ),
+                                    ],
                                   ),
                                 ),
-                            ],
-                          ],
+                                const SizedBox(height: 12),
+
+                                if (txs.isEmpty)
+                                  _EmptyTxState(isDark: isDark, t: t)
+                                else ...[
+                                  // Always show first 3
+                                  for (int i = 0;
+                                  i < txs.length.clamp(0, 3);
+                                  i++)
+                                    tileFor(i),
+
+                                  // Expandable rest
+                                  if (count > 3)
+                                    SizeTransition(
+                                      sizeFactor: _expandAnim,
+                                      axisAlignment: -1,
+                                      child: FadeTransition(
+                                        opacity: _expandAnim,
+                                        child: Column(
+                                          children: [
+                                            for (int i = 3;
+                                            i < count;
+                                            i++)
+                                              tileFor(i),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ],
+                            );
+                          },
                         );
                       },
-                    );
-                  },
+                    ),
+                  ]),
                 ),
-              ]),
-            ),
-          ),
-        ],
-      ),
-      floatingActionButton: _AddFab(
+              ),
+            ],
+          ),  // CustomScrollView
+        ),  // RefreshIndicator
+      ),  // AnimatedPadding
+      floatingActionButton: _searchActive ? null : _AddFab(
         onPressed: () => Navigator.push(
           context,
           MaterialPageRoute(
@@ -467,6 +584,7 @@ class _HomePageState extends State<HomePage>
     );
   }
 }
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 // HERO CARD — gradient bg, large balance, month pill

@@ -149,6 +149,35 @@ class _AddTransactionPageState extends State<AddTransactionPage>
         ),
         centerTitle: true,
       ),
+      // Submit button fixed above keyboard — never hidden by inputs
+      bottomNavigationBar: AnimatedPadding(
+        duration: const Duration(milliseconds: 150),
+        curve: Curves.easeOut,
+        padding: EdgeInsets.fromLTRB(
+          20, 12, 20,
+          MediaQuery.of(context).viewInsets.bottom > 0
+              ? MediaQuery.of(context).viewInsets.bottom + 12
+              : MediaQuery.of(context).padding.bottom + 20,
+        ),
+        child: SizedBox(
+          height: 56,
+          child: ElevatedButton(
+            onPressed: _submit,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: accentColor,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
+            ),
+            child: Text(
+              _isEditing ? t.editTransaction : t.addTransaction,
+              style: const TextStyle(
+                  fontSize: 15, fontWeight: FontWeight.w800),
+            ),
+          ),
+        ),
+      ),
       body: SlideTransition(
         position: _slideAnim,
         child: Form(
@@ -212,7 +241,7 @@ class _AddTransactionPageState extends State<AddTransactionPage>
                 ),
                 const SizedBox(height: 20),
 
-                // ── Amount (prominent) ─────────────────
+                // ── Amount ─────────────────────────────
                 Container(
                   padding: const EdgeInsets.symmetric(
                       horizontal: 20, vertical: 20),
@@ -231,7 +260,7 @@ class _AddTransactionPageState extends State<AddTransactionPage>
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
-                          color: isDark ? Colors.grey[500] : Colors.grey[500],
+                          color: isDark ? AppColors.mutedDark : AppColors.mutedLight,
                           letterSpacing: 0.5,
                         ),
                       ),
@@ -245,8 +274,8 @@ class _AddTransactionPageState extends State<AddTransactionPage>
                               fontSize: 22,
                               fontWeight: FontWeight.w800,
                               color: isDark
-                                  ? Colors.grey[400]
-                                  : Colors.grey[600],
+                                  ? AppColors.mutedDark
+                                  : AppColors.mutedLight,
                             ),
                           ),
                           const SizedBox(width: 8),
@@ -406,29 +435,7 @@ class _AddTransactionPageState extends State<AddTransactionPage>
                   isDark: isDark,
                   maxLines: 3,
                 ),
-                const SizedBox(height: 28),
-
-                // ── Submit ─────────────────────────────
-                SizedBox(
-                  height: 56,
-                  child: ElevatedButton(
-                    onPressed: _submit,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: accentColor,
-                      foregroundColor: Colors.white,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16)),
-                    ),
-                    child: Text(
-                      _isEditing ? t.editTransaction : t.addTransaction,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ),
-                ),
+                const SizedBox(height: 16),
               ],
             ),
           ),
@@ -591,6 +598,229 @@ class _CategoryPicker extends StatelessWidget {
           }).toList(),
         ),
       ],
+    );
+  }
+}
+
+// ── Calculator-style amount input ─────────────────────────────────────────────
+class _AmountCalculator extends StatefulWidget {
+  final TextEditingController controller;
+  final String currencySymbol;
+  final Color accentColor;
+  final bool isDark;
+  final VoidCallback onChanged;
+  final String? Function(String?) validator;
+
+  const _AmountCalculator({
+    required this.controller,
+    required this.currencySymbol,
+    required this.accentColor,
+    required this.isDark,
+    required this.onChanged,
+    required this.validator,
+  });
+
+  @override
+  State<_AmountCalculator> createState() => _AmountCalculatorState();
+}
+
+class _AmountCalculatorState extends State<_AmountCalculator> {
+  // The display string — separate from controller value
+  String _display = '';
+
+  @override
+  void initState() {
+    super.initState();
+    // Pre-fill if editing existing transaction
+    if (widget.controller.text.isNotEmpty &&
+        widget.controller.text != '0') {
+      _display = widget.controller.text;
+    }
+  }
+
+  void _press(String key) {
+    HapticFeedback.selectionClick();
+    setState(() {
+      if (key == '⌫') {
+        if (_display.isNotEmpty) {
+          _display = _display.substring(0, _display.length - 1);
+        }
+      } else if (key == '.') {
+        if (!_display.contains('.')) {
+          _display = _display.isEmpty ? '0.' : '$_display.';
+        }
+      } else {
+        // Prevent leading zeros
+        if (_display == '0') {
+          _display = key;
+        } else {
+          // Max 12 chars to prevent overflow
+          if (_display.length < 12) _display += key;
+        }
+      }
+      widget.controller.text = _display.isEmpty ? '' : _display;
+      widget.onChanged();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final amount = double.tryParse(_display) ?? 0;
+    final hasValue = _display.isNotEmpty && amount > 0;
+
+    return Column(
+      children: [
+        // ── Display ──────────────────────────────────────
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+          decoration: BoxDecoration(
+            color: widget.isDark
+                ? AppColors.cardDark
+                : AppColors.surfaceLight,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: hasValue
+                  ? widget.accentColor.withValues(alpha: 0.5)
+                  : widget.isDark
+                  ? AppColors.borderDark
+                  : AppColors.borderLight,
+              width: hasValue ? 1.5 : 1,
+            ),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(widget.currencySymbol,
+                  style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: widget.isDark
+                          ? AppColors.mutedDark
+                          : AppColors.mutedLight)),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  _display.isEmpty ? '0' : _display,
+                  style: TextStyle(
+                    fontSize: 36,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: -1,
+                    color: _display.isEmpty
+                        ? (widget.isDark
+                        ? AppColors.mutedDark
+                        : AppColors.mutedLight)
+                        : widget.accentColor,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              // Backspace icon hint
+              if (_display.isNotEmpty)
+                GestureDetector(
+                  onTap: () => _press('⌫'),
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppColors.expense.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(Icons.backspace_outlined,
+                        size: 18, color: AppColors.expense),
+                  ),
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        // ── Numpad ───────────────────────────────────────
+        Container(
+          decoration: BoxDecoration(
+            color: widget.isDark
+                ? AppColors.cardDark
+                : AppColors.surfaceLight,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: widget.isDark
+                  ? AppColors.borderDark
+                  : AppColors.borderLight,
+            ),
+          ),
+          padding: const EdgeInsets.all(10),
+          child: Column(
+            children: [
+              _buildRow(['7', '8', '9']),
+              const SizedBox(height: 8),
+              _buildRow(['4', '5', '6']),
+              const SizedBox(height: 8),
+              _buildRow(['1', '2', '3']),
+              const SizedBox(height: 8),
+              _buildRow(['.', '0', '⌫']),
+            ],
+          ),
+        ),
+
+        // Hidden FormField for validation
+        SizedBox(
+          height: 0,
+          child: TextFormField(
+            controller: widget.controller,
+            validator: widget.validator,
+            style: const TextStyle(height: 0),
+            decoration: const InputDecoration(
+                border: InputBorder.none, isDense: true),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRow(List<String> keys) {
+    return Row(
+      children: keys.map((key) {
+        final isBackspace = key == '⌫';
+        final isDot      = key == '.';
+        return Expanded(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: GestureDetector(
+              onTap: () => _press(key),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 100),
+                height: 56,
+                decoration: BoxDecoration(
+                  color: isBackspace
+                      ? AppColors.expense.withValues(alpha: 0.08)
+                      : widget.isDark
+                      ? AppColors.cardDark
+                      : AppColors.bgLight,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: widget.isDark
+                        ? AppColors.borderDark
+                        : AppColors.borderLight,
+                  ),
+                ),
+                child: Center(
+                  child: isBackspace
+                      ? const Icon(Icons.backspace_outlined,
+                      color: AppColors.expense, size: 20)
+                      : Text(key,
+                      style: TextStyle(
+                        fontSize: isDot ? 26 : 22,
+                        fontWeight: FontWeight.w600,
+                        color: widget.isDark
+                            ? Colors.white
+                            : AppColors.navyText,
+                      )),
+                ),
+              ),
+            ),
+          ),
+        );
+      }).toList(),
     );
   }
 }

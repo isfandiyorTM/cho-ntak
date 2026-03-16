@@ -28,6 +28,12 @@ class Translations {
   String get cancel          => const {'en':'Cancel','uz':'Bekor qilish','ru':'Отмена'}[_k]!;
   String get set             => const {'en':'Set','uz':'Belgilash','ru':'Задать'}[_k]!;
 
+  // ── General UI ────────────────────────────────────────────
+  String get close           => const {'en':'Close',  'uz':'Yopish',  'ru':'Закрыть'}[_k]!;
+  String get showAll         => const {'en':'All',    'uz':'Hammasi', 'ru':'Все'}[_k]!;
+  String get clear           => const {'en':'Clear',  'uz':'Tozalash','ru':'Сбросить'}[_k]!;
+  String get cancelShort     => const {'en':'Cancel', 'uz':'Bekor',   'ru':'Отмена'}[_k]!;
+
   // ── Delete dialog ─────────────────────────────────────────
   String get deleteTitle  => const {'en':'Delete transaction?','uz':'Tranzaksiyani o\'chirish?','ru':'Удалить транзакцию?'}[_k]!;
   String get deleteBody   => const {'en':'This action cannot be undone.','uz':'Bu amalni ortga qaytarib bo\'lmaydi.','ru':'Это действие нельзя отменить.'}[_k]!;

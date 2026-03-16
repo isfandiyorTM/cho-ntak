@@ -347,6 +347,7 @@ class _OverviewChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final t      = context.watch<LanguageProvider>().t;
     final maxVal = [income, expense, 1.0].reduce((a, b) => a > b ? a : b);
     final maxY   = maxVal * 1.3;
 
@@ -382,7 +383,7 @@ class _OverviewChart extends StatelessWidget {
                     sideTitles: SideTitles(
                       showTitles: true,
                       getTitlesWidget: (v, _) {
-                        final labels = ['Income', 'Expense'];
+                        final labels = [t.income, t.expense];
                         if (v.toInt() < labels.length) {
                           return Padding(
                             padding: const EdgeInsets.only(top: 8),
@@ -434,14 +435,14 @@ class _OverviewChart extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _Legend(label: 'Income',
+              _Legend(label: t.income,
                   value: CurrencyFormatter.formatCompact(income, currencySymbol),
                   color: AppColors.income),
-              _Legend(label: 'Expense',
+              _Legend(label: t.expense,
                   value: CurrencyFormatter.formatCompact(expense, currencySymbol),
                   color: AppColors.expense),
               _Legend(
-                  label: 'Balance',
+                  label: t.balance,
                   value: CurrencyFormatter.formatCompact((income - expense).abs(), currencySymbol),
                   color: income >= expense ? AppColors.gold : AppColors.expense),
             ],

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../core/i18n/language_provider.dart';
 import 'package:iconsax/iconsax.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/currency_formatter.dart';
@@ -75,6 +77,7 @@ class _TransactionDetailPageState extends State<TransactionDetailPage>
     final cat      = widget.category;
     final isIncome = tx.type == TransactionType.income;
     final isDark   = Theme.of(context).brightness == Brightness.dark;
+    final t        = context.watch<LanguageProvider>().t;
     final color    = cat?.color ?? AppColors.gold;
     final amtColor = isIncome ? AppColors.income : AppColors.expense;
     final bg       = isDark ? AppColors.surfaceDark : Colors.white;
@@ -213,7 +216,7 @@ class _TransactionDetailPageState extends State<TransactionDetailPage>
                                     color: amtColor.withValues(alpha: 0.3)),
                               ),
                               child: Text(
-                                isIncome ? '↑  Daromad' : '↓  Xarajat',
+                                isIncome ? '↑  ${t.income}' : '↓  ${t.expense}',
                                 style: TextStyle(
                                     fontSize: 12,
                                     color: amtColor,
@@ -240,7 +243,7 @@ class _TransactionDetailPageState extends State<TransactionDetailPage>
                           children: [
                             _DetailRow(
                               icon:      Iconsax.calendar,
-                              label:     'Sana',
+                              label:     t.date,
                               value:     DateFormatter.formatFull(tx.date),
                               iconColor: AppColors.gold,
                               isDark:    isDark,
@@ -249,7 +252,7 @@ class _TransactionDetailPageState extends State<TransactionDetailPage>
                               const SizedBox(height: 4),
                               _DetailRow(
                                 icon:      Iconsax.note,
-                                label:     'Izoh',
+                                label:     t.note,
                                 value:     tx.note!,
                                 iconColor: AppColors.gold,
                                 isDark:    isDark,
@@ -280,7 +283,7 @@ class _TransactionDetailPageState extends State<TransactionDetailPage>
                             Expanded(
                               child: _ActionButton(
                                 icon:  Iconsax.trash,
-                                label: "O'chirish",
+                                label: t.delete,
                                 color: AppColors.expense,
                                 onTap: () {
                                   Navigator.pop(context);
@@ -293,7 +296,7 @@ class _TransactionDetailPageState extends State<TransactionDetailPage>
                               flex: 2,
                               child: _ActionButton(
                                 icon:   Iconsax.edit,
-                                label:  'Tahrirlash',
+                                label:  t.editCategory,
                                 color:  AppColors.gold,
                                 filled: true,
                                 onTap:  () {

@@ -9,6 +9,7 @@ import 'core/constants/app_constants.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_notifier.dart';
 import 'core/i18n/language_provider.dart';
+import 'core/i18n/translations.dart';
 import 'core/services/notification_service.dart';
 import 'data/datasources/local_database.dart';
 import 'data/repositories/transaction_repository_impl.dart';
@@ -155,6 +156,16 @@ class _ChontakAppState extends State<ChontakApp> {
         .then((p) => p.setString(AppConstants.currencyKey, code));
   }
 
+  // Called by OnboardingPage when user finishes — applies language + currency
+  // to the live provider tree before showing MainShell
+  void _completeOnboarding(AppLanguage lang, String currencyCode) {
+    _langProvider.setLanguage(lang);
+    setState(() {
+      _showOnboarding = false;
+      _currencyCode   = currencyCode;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
@@ -200,7 +211,7 @@ class _ChontakAppState extends State<ChontakApp> {
                       ? ThemeMode.dark
                       : ThemeMode.light,
                   home: _showOnboarding
-                      ? const OnboardingPage()
+                      ? OnboardingPage(onComplete: _completeOnboarding)
                       : _showLock
                       ? LockScreen(
                     onUnlocked: () =>
