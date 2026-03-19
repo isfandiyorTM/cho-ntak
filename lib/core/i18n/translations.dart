@@ -71,6 +71,47 @@ class Translations {
   String get chooseColor       => const {'en':'Choose color',       'uz':'Rang tanlang',        'ru':'Выберите цвет'}[_k]!;
   String get noCustomCategories=> const {'en':'No custom categories yet','uz':'Hali kategoriya yo\'q','ru':'Нет категорий'}[_k]!;
 
+  // ── Export ───────────────────────────────────────────────────────────
+  String get exportData       => const {'en':'Export Data',              'uz':'Eksport',                       'ru':'Экспорт данных'}[_k]!;
+  String get exportReport     => const {'en':'Export Report',            'uz':'Hisobotni eksport',             'ru':'Экспорт отчёта'}[_k]!;
+  String get exportSub        => const {'en':'PDF or Excel export',      'uz':'PDF yoki Excel ga eksport',     'ru':'Экспорт в PDF или Excel'}[_k]!;
+  String get exportFormat     => const {'en':'Export Format',            'uz':'Eksport formati',               'ru':'Формат экспорта'}[_k]!;
+  String get exportTimePeriod => const {'en':'Time Period',              'uz':'Vaqt oralig\'i',               'ru':'Период времени'}[_k]!;
+  String get exportInclude    => const {'en':'Include',                  'uz':'Qo\'shish',                    'ru':'Включить'}[_k]!;
+  String get exportPreview    => const {'en':'Preview',                  'uz':'Ko\'rinish',                   'ru':'Предпросмотр'}[_k]!;
+  String get exportSuccess    => const {'en':'Export Successful!',       'uz':'Eksport muvaffaqiyatli!',       'ru':'Экспорт успешен!'}[_k]!;
+  String get exportPdfReady   => const {'en':'Your PDF report is ready.','uz':'PDF hisobotingiz tayyor.',      'ru':'Ваш PDF отчёт готов.'}[_k]!;
+  String get exportXlsReady   => const {'en':'Your Excel file is ready.','uz':'Excel faylingiz tayyor.',       'ru':'Ваш Excel файл готов.'}[_k]!;
+  String get exportShare      => const {'en':'Share',                    'uz':'Ulashish',                      'ru':'Поделиться'}[_k]!;
+  String get exportOpen       => const {'en':'Open',                     'uz':'Ochish',                        'ru':'Открыть'}[_k]!;
+  String get exportNoData     => const {'en':'No data for this period',  'uz':'Bu davr uchun ma\'lumot yo\'q','ru':'Нет данных за этот период'}[_k]!;
+  String get exportPDF        => const {'en':'Export PDF',               'uz':'PDF eksport',                   'ru':'Экспорт PDF'}[_k]!;
+  String get exportExcel      => const {'en':'Export Excel',             'uz':'Excel eksport',                 'ru':'Экспорт Excel'}[_k]!;
+  String get exportPdfLabel   => const {'en':'PDF Report',               'uz':'PDF hisobot',                   'ru':'PDF отчёт'}[_k]!;
+  String get exportExcelLabel => const {'en':'Excel Sheet',              'uz':'Excel jadval',                  'ru':'Excel таблица'}[_k]!;
+  String get exportPdfSub     => const {'en':'Professional · Charts · Branded','uz':'Professional · Grafiklar','ru':'Профессиональный · Графики'}[_k]!;
+  String get exportExcelSub   => const {'en':'3 Sheets · Formulas · Filterable','uz':'3 varaq · Formulalar',  'ru':'3 листа · Формулы · Фильтры'}[_k]!;
+  String get exportIncIncome  => const {'en':'Income Transactions',      'uz':'Daromad tranzaksiyalari',       'ru':'Транзакции доходов'}[_k]!;
+  String get exportIncExpense => const {'en':'Expense Transactions',     'uz':'Xarajat tranzaksiyalari',       'ru':'Транзакции расходов'}[_k]!;
+  String get exportIncCharts  => const {'en':'Category Charts',          'uz':'Kategoriya grafiklari',         'ru':'Диаграммы категорий'}[_k]!;
+  String get exportPeriodLabel=> const {'en':'Period',                   'uz':'Davr',                          'ru':'Период'}[_k]!;
+  String get periodThisMonth  => const {'en':'This Month',               'uz':'Bu oy',                         'ru':'Этот месяц'}[_k]!;
+  String get periodLastMonth  => const {'en':'Last Month',               'uz':'O\'tgan oy',                   'ru':'Прошлый месяц'}[_k]!;
+  String get period3Months    => const {'en':'Last 3 Months',            'uz':'So\'nggi 3 oy',                'ru':'3 месяца'}[_k]!;
+  String get period6Months    => const {'en':'Last 6 Months',            'uz':'So\'nggi 6 oy',                'ru':'6 месяцев'}[_k]!;
+  String get periodThisYear   => const {'en':'This Year',                'uz':'Bu yil',                        'ru':'Этот год'}[_k]!;
+  String get periodAllTime    => const {'en':'All Time',                  'uz':'Barcha vaqt',                   'ru':'За всё время'}[_k]!;
+  String get exportPdfInfo1   => const {'en':'Cover page with summary cards',       'uz':'Xulosa kartochkali muqova',     'ru':'Обложка со сводными карточками'}[_k]!;
+  String get exportPdfInfo2   => const {'en':'Income / Expense / Balance stats',    'uz':'Daromad / Xarajat / Balans',    'ru':'Доходы / Расходы / Баланс'}[_k]!;
+  String get exportPdfInfo3   => const {'en':'Spending by category breakdown',      'uz':'Kategoriyalar bo\'yicha xarajat','ru':'Расходы по категориям'}[_k]!;
+  String get exportPdfInfo4   => const {'en':'Full transaction table',              'uz':'To\'liq tranzaksiyalar jadvali', 'ru':'Полная таблица транзакций'}[_k]!;
+  String get exportPdfInfo5   => const {'en':'Dark branded design',                'uz':'Brendlangan dizayn',             'ru':'Фирменный дизайн'}[_k]!;
+  String get exportXlsInfo1   => const {'en':'Sheet 1: Summary & categories',      'uz':'Varaq 1: Xulosa',               'ru':'Лист 1: Сводка и категории'}[_k]!;
+  String get exportXlsInfo2   => const {'en':'Sheet 2: Full transaction list',     'uz':'Varaq 2: Tranzaksiyalar',       'ru':'Лист 2: Список транзакций'}[_k]!;
+  String get exportXlsInfo3   => const {'en':'Sheet 3: Monthly breakdown',         'uz':'Varaq 3: Oylik tahlil',         'ru':'Лист 3: По месяцам'}[_k]!;
+  String get exportXlsInfo4   => const {'en':'Color-coded income / expense rows',  'uz':'Rangli qatorlar',               'ru':'Цветные строки'}[_k]!;
+  String get exportXlsInfo5   => const {'en':'Ready for filtering & pivot tables', 'uz':'Filtrlash uchun tayyor',        'ru':'Готов для фильтрации'}[_k]!;
+
   // ── Widget
   String get widgetSettings => const {'en':'Home Widget',      'uz':'Uy ekrani vidjet',     'ru':'Виджет'}[_k]!;
   String get widgetOpacity  => const {'en':'Background opacity','uz':'Fon shaffofligi',      'ru':'Прозрачность фона'}[_k]!;

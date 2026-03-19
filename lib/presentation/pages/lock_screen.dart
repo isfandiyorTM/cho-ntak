@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:iconsax/iconsax.dart';
 import 'package:flutter/services.dart';
 import '../../core/services/app_lock_service.dart';
 import '../../core/theme/app_theme.dart';
@@ -159,8 +160,41 @@ class _LockScreenState extends State<LockScreen>
               const Spacer(),
 
               // ── Logo + title ──────────────────────────────
-              const Text('👛',
-                  style: TextStyle(fontSize: 56)),
+              Stack(
+                alignment: Alignment.center,
+                children: [
+                  Container(
+                    width: 110, height: 110,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: RadialGradient(colors: [
+                        AppColors.gold.withValues(alpha: 0.28),
+                        Colors.transparent,
+                      ]),
+                    ),
+                  ),
+                  Container(
+                    width: 84, height: 84,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          AppColors.gold,
+                          AppColors.gold.withValues(alpha: 0.75),
+                        ],
+                      ),
+                      boxShadow: [BoxShadow(
+                        color: AppColors.gold.withValues(alpha: 0.45),
+                        blurRadius: 24, spreadRadius: 4,
+                      )],
+                    ),
+                    child: const Icon(Iconsax.wallet_2,
+                        color: Colors.black, size: 38),
+                  ),
+                ],
+              ),
               const SizedBox(height: 16),
               Text(
                 widget.isSetup

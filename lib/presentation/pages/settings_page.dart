@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../blocs/transaction/transaction_bloc.dart';
+import 'export_page.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/theme/app_theme.dart';
@@ -162,6 +164,49 @@ class _SettingsPageState extends State<SettingsPage> {
                     ),
                   ),
                 ),
+              ),
+            ]),
+            const SizedBox(height: 20),
+
+            // ── Export ────────────────────────────────────
+            _Section(t.exportData, [
+              _SettingsTile(
+                icon: Iconsax.document_download,
+                iconColor: const Color(0xFFEF4444),
+                title: t.exportReport,
+                subtitle: t.exportSub,
+                trailing: Row(mainAxisSize: MainAxisSize.min, children: [
+                  Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                          color: const Color(0xFFEF4444).withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(6)),
+                      child: const Text('PDF', style: TextStyle(
+                          fontSize: 10, fontWeight: FontWeight.w700,
+                          color: Color(0xFFEF4444)))),
+                  const SizedBox(width: 4),
+                  Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                          color: const Color(0xFF1D6F42).withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(6)),
+                      child: const Text('XLS', style: TextStyle(
+                          fontSize: 10, fontWeight: FontWeight.w700,
+                          color: Color(0xFF1D6F42)))),
+                ]),
+                onTap: () {
+                  final txState  = context.read<TransactionBloc>().state;
+                  final catState = context.read<CategoryBloc>().state;
+                  if (txState is! TransactionLoaded) return;
+                  if (catState is! CategoryLoaded) return;
+                  Navigator.push(context, MaterialPageRoute(
+                    builder: (_) => ExportPage(
+                      transactions:   txState.transactions,
+                      categories:     catState.categories,
+                      currencySymbol: _currencySymbol,
+                    ),
+                  ));
+                },
               ),
             ]),
             const SizedBox(height: 20),
@@ -373,6 +418,22 @@ class _SettingsPageState extends State<SettingsPage> {
                 iconColor: AppColors.gold,
                 title: t.developer,
                 subtitle: 'Isfandiyor Madaminov',
+              ),
+              _SettingsTile(
+                icon: Iconsax.refresh,
+                iconColor: AppColors.amber,
+                title: "Kirish sahifasini ko'rish",
+                subtitle: "Onboarding-ni qayta ko'rsatish",
+                onTap: () async {
+                  final prefs = await SharedPreferences.getInstance();
+                  await prefs.setBool('onboarding_done', false);
+                  if (context.mounted) {
+                    Navigator.of(context).pushNamedAndRemoveUntil(
+                        '/', (_) => false);
+                    // Restart app by reinvoking main flow
+                    runApp(const SizedBox.shrink());
+                  }
+                },
               ),
             ]),
             const SizedBox(height: 40),
