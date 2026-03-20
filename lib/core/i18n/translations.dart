@@ -13,6 +13,7 @@ class Translations {
   String get income      => const {'en':'Income',   'uz':'Daromad',     'ru':'Доходы'}[_k]!;
   String get expense     => const {'en':'Expense',  'uz':'Xarajat',     'ru':'Расходы'}[_k]!;
   String get balance     => const {'en':'Balance',  'uz':'Balans',      'ru':'Баланс'}[_k]!;
+  String get error       => const {'en':'Error',    'uz':'Xato',        'ru':'Ошибка'}[_k]!;
   String get transactions=> const {'en':'Transactions','uz':'Tranzaksiyalar','ru':'Транзакции'}[_k]!;
   String get noTransactions => const {'en':'No transactions yet','uz':'Tranzaksiyalar yo\'q','ru':'Нет транзакций'}[_k]!;
   String get addFirst    => const {'en':'Tap + to add your first one','uz':'Birinchisini qo\'shish uchun + ni bosing','ru':'Нажмите + чтобы добавить первую'}[_k]!;
@@ -70,6 +71,10 @@ class Translations {
   String get chooseEmoji       => const {'en':'Choose icon',        'uz':'Belgi tanlang',       'ru':'Выберите иконку'}[_k]!;
   String get chooseColor       => const {'en':'Choose color',       'uz':'Rang tanlang',        'ru':'Выберите цвет'}[_k]!;
   String get noCustomCategories=> const {'en':'No custom categories yet','uz':'Hali kategoriya yo\'q','ru':'Нет категорий'}[_k]!;
+
+  String get savingsRate   => const {'en':'Savings Rate',   'uz':'Jamg\'arma foizi',     'ru':'Норма сбережений'}[_k]!;
+  String get monthlyTrend  => const {'en':'6-Month Trend',  'uz':'6 oylik tendensiya',   'ru':'Тенденция 6 месяцев'}[_k]!;
+  String get dailySpending => const {'en':'Daily Spending', 'uz':'Kunlik xarajat',       'ru':'Расходы по дням'}[_k]!;
 
   // ── Export ───────────────────────────────────────────────────────────
   String get exportData       => const {'en':'Export Data',              'uz':'Eksport',                       'ru':'Экспорт данных'}[_k]!;

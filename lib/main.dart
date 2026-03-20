@@ -173,63 +173,66 @@ class _ChontakAppState extends State<ChontakApp> {
         ChangeNotifierProvider.value(value: _themeNotifier),
         ChangeNotifierProvider.value(value: _langProvider),
       ],
-      child: MultiBlocProvider(
-        providers: [
-          BlocProvider(
-            create: (_) => TransactionBloc(
-              getTransactions:   GetTransactions(_txRepo),
-              addTransaction:    AddTransaction(_txRepo),
-              updateTransaction: UpdateTransaction(_txRepo),
-              deleteTransaction: DeleteTransaction(_txRepo),
-              repository:        _txRepo,
+      child: RepositoryProvider<TransactionRepositoryImpl>(
+        create: (_) => _txRepo,
+        child: MultiBlocProvider(
+          providers: [
+            BlocProvider(
+              create: (_) => TransactionBloc(
+                getTransactions:   GetTransactions(_txRepo),
+                addTransaction:    AddTransaction(_txRepo),
+                updateTransaction: UpdateTransaction(_txRepo),
+                deleteTransaction: DeleteTransaction(_txRepo),
+                repository:        _txRepo,
+              ),
             ),
-          ),
-          BlocProvider(
-            create: (_) => BudgetBloc(
-              getBudget:  GetBudget(_budgetRepo),
-              setBudget:  SetBudget(_budgetRepo),
-              repository: _budgetRepo,
+            BlocProvider(
+              create: (_) => BudgetBloc(
+                getBudget:  GetBudget(_budgetRepo),
+                setBudget:  SetBudget(_budgetRepo),
+                repository: _budgetRepo,
+              ),
             ),
+            BlocProvider(
+              create: (_) => CategoryBloc(repository: _categoryRepo),
+            ),
+          ],
+          // ── Consumer<ThemeNotifier> is the ONLY thing that rebuilds MaterialApp
+          child: Consumer<ThemeNotifier>(
+            builder: (context, themeNotifier, _) {
+              return Consumer<LanguageProvider>(
+                builder: (context, langProvider, _) {
+                  _categoryRepo.updateLanguage(langProvider.t);
+                  return MaterialApp(
+                    title: AppConstants.appName,
+                    debugShowCheckedModeBanner: false,
+                    theme:     AppTheme.lightTheme,
+                    darkTheme: AppTheme.darkTheme,
+                    // ← This is now driven by ThemeNotifier, guaranteed reactive
+                    themeMode: themeNotifier.isDark
+                        ? ThemeMode.dark
+                        : ThemeMode.light,
+                    home: _showOnboarding
+                        ? OnboardingPage(onComplete: _completeOnboarding)
+                        : _showLock
+                        ? LockScreen(
+                      onUnlocked: () =>
+                          setState(() => _showLock = false),
+                    )
+                        : MainShell(
+                      isDark:            themeNotifier.isDark,
+                      currency:          _currencyCode,
+                      currencySymbol:    _currencySymbol,
+                      onThemeChanged:    themeNotifier.setDark,
+                      onCurrencyChanged: _handleCurrencyChange,
+                    ),
+                  );
+                },
+              );
+            },
           ),
-          BlocProvider(
-            create: (_) => CategoryBloc(repository: _categoryRepo),
-          ),
-        ],
-        // ── Consumer<ThemeNotifier> is the ONLY thing that rebuilds MaterialApp
-        child: Consumer<ThemeNotifier>(
-          builder: (context, themeNotifier, _) {
-            return Consumer<LanguageProvider>(
-              builder: (context, langProvider, _) {
-                _categoryRepo.updateLanguage(langProvider.t);
-                return MaterialApp(
-                  title: AppConstants.appName,
-                  debugShowCheckedModeBanner: false,
-                  theme:     AppTheme.lightTheme,
-                  darkTheme: AppTheme.darkTheme,
-                  // ← This is now driven by ThemeNotifier, guaranteed reactive
-                  themeMode: themeNotifier.isDark
-                      ? ThemeMode.dark
-                      : ThemeMode.light,
-                  home: _showOnboarding
-                      ? OnboardingPage(onComplete: _completeOnboarding)
-                      : _showLock
-                      ? LockScreen(
-                    onUnlocked: () =>
-                        setState(() => _showLock = false),
-                  )
-                      : MainShell(
-                    isDark:            themeNotifier.isDark,
-                    currency:          _currencyCode,
-                    currencySymbol:    _currencySymbol,
-                    onThemeChanged:    themeNotifier.setDark,
-                    onCurrencyChanged: _handleCurrencyChange,
-                  ),
-                );
-              },
-            );
-          },
         ),
-      ),
+      ),  // RepositoryProvider
     );
   }
 }
