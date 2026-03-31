@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/savings_widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:paddingLeft="18dp"
+    android:paddingRight="18dp"
+    android:paddingTop="14dp"
+    android:paddingBottom="14dp"
+    android:background="#CC111111">
+
+    <!-- Header row: app name + label -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Cho'ntak"
+            android:textColor="#FFD700"
+            android:textSize="13sp"
+            android:textStyle="bold"/>
+
+        <TextView
+            android:id="@+id/tv_savings_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="JAMG'ARMA"
+            android:textColor="#66FFD700"
+            android:textSize="10sp"
+            android:letterSpacing="0.1"/>
+
+    </LinearLayout>
+
+    <!-- Goal title + emoji -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginTop="10dp">
+
+        <TextView
+            android:id="@+id/tv_goal_emoji"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🎯"
+            android:textSize="22sp"
+            android:layout_marginRight="8dp"/>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tv_goal_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="My Goal"
+                android:textColor="#FFFFFFFF"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:maxLines="1"
+                android:ellipsize="end"/>
+
+            <TextView
+                android:id="@+id/tv_goal_deadline"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textColor="#55FFFFFF"
+                android:textSize="10sp"
+                android:layout_marginTop="1dp"/>
+
+        </LinearLayout>
+
+        <!-- Percentage bubble -->
+        <TextView
+            android:id="@+id/tv_goal_pct"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0%"
+            android:textColor="#FFD700"
+            android:textSize="18sp"
+            android:textStyle="bold"/>
+
+    </LinearLayout>
+
+    <!-- Progress bar track -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="6dp"
+        android:layout_marginTop="10dp"
+        android:background="#22FFFFFF">
+
+        <!-- Fill: match_parent + scaleX set from code. pivotX=0 so it grows left→right -->
+        <View
+            android:id="@+id/progress_fill"
+            android:layout_width="match_parent"
+            android:layout_height="6dp"
+            android:background="#FFD700"
+            android:transformPivotX="0dp"
+            android:scaleX="0.01"/>
+
+    </FrameLayout>
+
+    <!-- Amounts row -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="8dp">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="YIGILGAN"
+                android:textColor="#4DFFD700"
+                android:textSize="9sp"
+                android:letterSpacing="0.05"/>
+
+            <TextView
+                android:id="@+id/tv_saved"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="so'm 0"
+                android:textColor="#FFFFFFFF"
+                android:textSize="13sp"
+                android:textStyle="bold"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="right">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="MAQSAD"
+                android:textColor="#4DFFFFFF"
+                android:textSize="9sp"
+                android:letterSpacing="0.05"/>
+
+            <TextView
+                android:id="@+id/tv_target"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="so'm 0"
+                android:textColor="#99FFFFFF"
+                android:textSize="13sp"
+                android:textStyle="bold"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- No goals placeholder (shown when table empty) -->
+    <TextView
+        android:id="@+id/tv_no_goals"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:text="Maqsad yo'q"
+        android:textColor="#44FFFFFF"
+        android:textSize="12sp"
+        android:visibility="gone"/>
+
+</LinearLayout>
