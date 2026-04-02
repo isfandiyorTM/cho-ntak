@@ -40,6 +40,11 @@ class BalanceWidget : AppWidgetProvider() {
 
     companion object {
 
+        // Intent extras — read by MainActivity and passed to Flutter
+        const val EXTRA_WIDGET_ACTION = "widget_action"
+        const val ACTION_ADD_INCOME   = "income"
+        const val ACTION_ADD_EXPENSE  = "expense"
+
         fun updateWidget(
             context: Context,
             appWidgetManager: AppWidgetManager,
@@ -49,7 +54,7 @@ class BalanceWidget : AppWidgetProvider() {
                 val data  = readBalanceData(context)
                 val views = RemoteViews(context.packageName, R.layout.widget_balance)
 
-                // ── Opacity: Flutter stores SharedPreferences as Long ──
+                // ── Background opacity ──────────────────────────────────
                 val prefs  = context.getSharedPreferences(
                     "FlutterSharedPreferences", Context.MODE_PRIVATE)
                 val opacity = try {
@@ -62,30 +67,52 @@ class BalanceWidget : AppWidgetProvider() {
                 val bgColor = (alpha shl 24) or 0x111111
                 views.setInt(R.id.widget_root, "setBackgroundColor", bgColor)
 
-                // ── Balance ────────────────────────────────────────────
+                // ── Balance ─────────────────────────────────────────────
                 val balanceColor = if (data.balance < 0) 0xFFF44336.toInt()
                 else 0xFFFFFFFF.toInt()
                 views.setTextViewText(R.id.tv_balance, fmt(data.balance, data.currency))
                 views.setTextColor(R.id.tv_balance, balanceColor)
 
-                // ── Income / Expense ───────────────────────────────────
+                // ── Income / Expense ────────────────────────────────────
                 views.setTextViewText(R.id.tv_income,  fmt(data.income,  data.currency))
                 views.setTextViewText(R.id.tv_expense, fmt(data.expense, data.currency))
 
-                // ── Month ──────────────────────────────────────────────
+                // ── Month ───────────────────────────────────────────────
                 val monthName = SimpleDateFormat("MMMM yyyy", Locale.getDefault())
                     .format(Calendar.getInstance().time)
                 views.setTextViewText(R.id.tv_month, monthName)
 
-                // ── Tap → open app ─────────────────────────────────────
+                // ── Tap whole widget → open app ─────────────────────────
                 val launchIntent = Intent(context, MainActivity::class.java).apply {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
                 }
-                val pendingIntent = PendingIntent.getActivity(
+                val launchPending = PendingIntent.getActivity(
                     context, 0, launchIntent,
                     PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
                 )
-                views.setOnClickPendingIntent(R.id.widget_root, pendingIntent)
+                views.setOnClickPendingIntent(R.id.widget_root, launchPending)
+
+                // ── + Income button ─────────────────────────────────────
+                val incomeIntent = Intent(context, MainActivity::class.java).apply {
+                    flags  = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                    putExtra(EXTRA_WIDGET_ACTION, ACTION_ADD_INCOME)
+                }
+                val incomePending = PendingIntent.getActivity(
+                    context, 1, incomeIntent,
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                )
+                views.setOnClickPendingIntent(R.id.btn_income, incomePending)
+
+                // ── − Expense button ────────────────────────────────────
+                val expenseIntent = Intent(context, MainActivity::class.java).apply {
+                    flags  = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                    putExtra(EXTRA_WIDGET_ACTION, ACTION_ADD_EXPENSE)
+                }
+                val expensePending = PendingIntent.getActivity(
+                    context, 2, expenseIntent,
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                )
+                views.setOnClickPendingIntent(R.id.btn_expense, expensePending)
 
                 appWidgetManager.updateAppWidget(widgetId, views)
 
@@ -107,9 +134,9 @@ class BalanceWidget : AppWidgetProvider() {
                 val db = SQLiteDatabase.openDatabase(
                     dbFile.path, null, SQLiteDatabase.OPEN_READONLY)
 
-                val cal    = Calendar.getInstance()
-                val month  = String.format("%02d", cal.get(Calendar.MONTH) + 1)
-                val year   = cal.get(Calendar.YEAR).toString()
+                val cal   = Calendar.getInstance()
+                val month = String.format("%02d", cal.get(Calendar.MONTH) + 1)
+                val year  = cal.get(Calendar.YEAR).toString()
                 val cutoff = "$year-$month-01"
 
                 val iCursor = db.rawQuery(

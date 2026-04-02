@@ -27,6 +27,7 @@ import 'presentation/blocs/category/category_bloc.dart';
 import 'presentation/blocs/category_budget/category_budget_bloc.dart';
 import 'presentation/blocs/shopping/shopping_bloc.dart';
 import 'presentation/pages/main_shell.dart';
+import 'presentation/pages/add_transaction_page.dart';
 import 'presentation/pages/onboarding_page.dart';
 import 'presentation/pages/lock_screen.dart';
 import 'core/services/app_lock_service.dart';
@@ -70,6 +71,9 @@ class ChontakApp extends StatefulWidget {
   State<ChontakApp> createState() => _ChontakAppState();
 }
 
+// Global key so widget-button deep-links can push routes from outside the tree
+final navigatorKey = GlobalKey<NavigatorState>();
+
 class _ChontakAppState extends State<ChontakApp>
     with WidgetsBindingObserver {
   late ThemeNotifier   _themeNotifier;
@@ -98,6 +102,8 @@ class _ChontakAppState extends State<ChontakApp>
 
     Future.delayed(const Duration(seconds: 2), _scheduleDaily);
     WidgetsBinding.instance.addObserver(this);
+    // Check if the app was launched from a home-screen widget button
+    WidgetsBinding.instance.addPostFrameCallback((_) => _checkWidgetAction());
   }
 
   @override
@@ -107,60 +113,100 @@ class _ChontakAppState extends State<ChontakApp>
     super.dispose();
   }
 
-  // Reschedule with fresh data every time app comes to foreground
+  // Reschedule notifications with fresh data every time the app resumes
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      // Small delay so DB is ready
       Future.delayed(const Duration(milliseconds: 800), _scheduleDaily);
     }
   }
 
+  // ── Widget deep-link ────────────────────────────────────────────────────────
+
+  static const _widgetChannel =
+  MethodChannel('com.example.expense_tracker/widget');
+
+  Future<void> _checkWidgetAction() async {
+    try {
+      final action =
+      await _widgetChannel.invokeMethod<String>('getWidgetAction');
+      if (action != null && mounted) {
+        // Small delay so the widget tree is fully built
+        await Future.delayed(const Duration(milliseconds: 400));
+        if (!mounted) return;
+        final ctx = navigatorKey.currentContext;
+        if (ctx == null) return;
+        Navigator.of(ctx).push(MaterialPageRoute(
+          builder: (_) => MultiBlocProvider(
+            providers: [
+              BlocProvider.value(value: ctx.read<TransactionBloc>()),
+              BlocProvider.value(value: ctx.read<CategoryBloc>()),
+              BlocProvider.value(value: ctx.read<CategoryBudgetBloc>()),
+            ],
+            child: AddTransactionPage(
+              currencySymbol: _currencySymbol,
+            ),
+          ),
+        ));
+      }
+    } catch (_) {}
+  }
+
+  // ── Notifications ───────────────────────────────────────────────────────────
+
   Future<void> _scheduleDaily() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
+      final prefs   = await SharedPreferences.getInstance();
       final enabled = prefs.getBool('notif_enabled') ?? true;
       if (!enabled) return;
 
-      final now = DateTime.now();
+      final now    = DateTime.now();
       final symbol = _currencySymbol;
-      final hour = prefs.getInt('notif_hour') ?? 9;
+      final hour   = prefs.getInt('notif_hour')   ?? 9;
       final minute = prefs.getInt('notif_minute') ?? 0;
 
-      final transactions = await _txRepo.getTransactionsByMonth(now.month, now.year);
-      final budget = await _budgetRepo.getBudgetByMonth(now.month, now.year);
-      final carryover = await _txRepo.getCarryover(now.month, now.year);
+      final transactions =
+      await _txRepo.getTransactionsByMonth(now.month, now.year);
+      final budget =
+      await _budgetRepo.getBudgetByMonth(now.month, now.year);
+      final carryover =
+      await _txRepo.getCarryover(now.month, now.year);
 
       double income = 0, expense = 0;
       for (final tx in transactions) {
-        if (tx.type.name == 'income') income += tx.amount;
+        if (tx.type.name == 'income')  income  += tx.amount;
         if (tx.type.name == 'expense') expense += tx.amount;
       }
 
-      final balance = carryover + income - expense;
+      final balance     = carryover + income - expense;
       final budgetLimit = budget?.limit ?? 0;
 
+      // Morning summary notification
       await NotificationService.instance.scheduleMorningNotification(
-        t: _langProvider.t,
-        balance: balance,
-        totalExpense: expense,
-        budgetLimit: budgetLimit,
+        t:              _langProvider.t,
+        balance:        balance,
+        totalExpense:   expense,
+        budgetLimit:    budgetLimit,
         currencySymbol: symbol,
-        hour: hour,
-        minute: minute,
+        hour:           hour,
+        minute:         minute,
       );
 
-      final eveningHour = prefs.getInt('evening_notif_hour') ?? 20;
+      // Evening reminder notification
+      final eveningHour   = prefs.getInt('evening_notif_hour')   ?? 20;
       final eveningMinute = prefs.getInt('evening_notif_minute') ?? 30;
       await NotificationService.instance.scheduleEveningReminder(
-        t: _langProvider.t,
-        hour: eveningHour,
+        t:      _langProvider.t,
+        hour:   eveningHour,
         minute: eveningMinute,
       );
     } catch (e) {
       debugPrint('Notification schedule error: $e');
     }
   }
+
+  // ── Helpers ─────────────────────────────────────────────────────────────────
+
   String get _currencySymbol {
     return AppConstants.currencies.firstWhere(
           (c) => c['code'] == _currencyCode,
@@ -175,8 +221,8 @@ class _ChontakAppState extends State<ChontakApp>
         .then((p) => p.setString(AppConstants.currencyKey, code));
   }
 
-  // Called by OnboardingPage when user finishes — applies language + currency
-  // to the live provider tree before showing MainShell
+  /// Called by [OnboardingPage] when the user finishes — applies language +
+  /// currency to the live provider tree before showing [MainShell].
   void _completeOnboarding(AppLanguage lang, String currencyCode) {
     _langProvider.setLanguage(lang);
     setState(() {
@@ -184,6 +230,8 @@ class _ChontakAppState extends State<ChontakApp>
       _currencyCode   = currencyCode;
     });
   }
+
+  // ── Build ───────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
@@ -222,18 +270,18 @@ class _ChontakAppState extends State<ChontakApp>
               create: (_) => ShoppingBloc(LocalDatabase.instance),
             ),
           ],
-          // ── Consumer<ThemeNotifier> is the ONLY thing that rebuilds MaterialApp
+          // Consumer<ThemeNotifier> is the ONLY thing that rebuilds MaterialApp
           child: Consumer<ThemeNotifier>(
             builder: (context, themeNotifier, _) {
               return Consumer<LanguageProvider>(
                 builder: (context, langProvider, _) {
                   _categoryRepo.updateLanguage(langProvider.t);
                   return MaterialApp(
-                    title: AppConstants.appName,
+                    navigatorKey:              navigatorKey,
+                    title:                     AppConstants.appName,
                     debugShowCheckedModeBanner: false,
-                    theme:     AppTheme.lightTheme,
-                    darkTheme: AppTheme.darkTheme,
-                    // ← This is now driven by ThemeNotifier, guaranteed reactive
+                    theme:                     AppTheme.lightTheme,
+                    darkTheme:                 AppTheme.darkTheme,
                     themeMode: themeNotifier.isDark
                         ? ThemeMode.dark
                         : ThemeMode.light,
@@ -257,7 +305,7 @@ class _ChontakAppState extends State<ChontakApp>
             },
           ),
         ),
-      ),  // RepositoryProvider
+      ), // RepositoryProvider
     );
   }
 }

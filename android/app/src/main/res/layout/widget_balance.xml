@@ -11,10 +11,12 @@
     android:paddingBottom="16dp"
     android:background="#CC111111">
 
+    <!-- ── Header row ─────────────────────────── -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
 
         <TextView
             android:id="@+id/tv_app_name"
@@ -36,6 +38,7 @@
 
     </LinearLayout>
 
+    <!-- ── Balance ────────────────────────────── -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -56,8 +59,10 @@
         android:text="so'm 0"
         android:textColor="#FFFFFF"
         android:textSize="40sp"
-        android:textStyle="bold"/>
+        android:textStyle="bold"
+        android:layout_marginBottom="4dp"/>
 
+    <!-- ── Divider ─────────────────────────────── -->
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -65,10 +70,12 @@
         android:textColor="#33FFFFFF"
         android:textSize="6sp"/>
 
+    <!-- ── Income / Expense row ───────────────── -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:layout_marginBottom="10dp">
 
         <LinearLayout
             android:layout_width="0dp"
@@ -119,6 +126,41 @@
                 android:textStyle="bold"/>
 
         </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- ── Quick action buttons ──────────────── -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center">
+
+        <TextView
+            android:id="@+id/btn_income"
+            android:layout_width="0dp"
+            android:layout_height="36dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="6dp"
+            android:text="+ Daromad"
+            android:textColor="#000000"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:background="#4CAF50"/>
+
+        <TextView
+            android:id="@+id/btn_expense"
+            android:layout_width="0dp"
+            android:layout_height="36dp"
+            android:layout_weight="1"
+            android:layout_marginStart="6dp"
+            android:text="− Xarajat"
+            android:textColor="#FFFFFF"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:background="#E53935"/>
 
     </LinearLayout>
 
