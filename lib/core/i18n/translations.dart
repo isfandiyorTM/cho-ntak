@@ -55,6 +55,7 @@ class Translations {
   String get greaterThanZero   => const {'en':'Must be greater than 0','uz':'0 dan katta bo\'lishi kerak','ru':'Должно быть больше 0'}[_k]!;
 
   // ── Shopping ─────────────────────────────────────────────────────────────────
+  String get shopping      => const {'en':'Shopping',       'uz':'Xaridlar',           'ru':'Покупки'}[_k]!;
   String get shoppingLists    => const {'en':'Shopping Lists',    'uz':'Xarid ro\'yxatlari', 'ru':'Списки покупок'}[_k]!;
   String get shoppingList     => const {'en':'Shopping List',     'uz':'Xarid ro\'yxati',    'ru':'Список покупок'}[_k]!;
   String get newList          => const {'en':'New List',          'uz':'Yangi ro\'yxat',     'ru':'Новый список'}[_k]!;

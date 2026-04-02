@@ -17,7 +17,8 @@ class AppConstants {
 
   // Notification IDs
   static const int morningNotifId = 1001;
-  static const int appOpenNotifId = 1002;
+  static const int eveningNotifId = 1002;
+  static const int appOpenNotifId = 2001;
 
   // Notification channel
   static const String notifChannelId   = 'chontak_channel';

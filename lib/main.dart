@@ -118,44 +118,49 @@ class _ChontakAppState extends State<ChontakApp>
 
   Future<void> _scheduleDaily() async {
     try {
-      final prefs   = await SharedPreferences.getInstance();
+      final prefs = await SharedPreferences.getInstance();
       final enabled = prefs.getBool('notif_enabled') ?? true;
       if (!enabled) return;
 
-      final now    = DateTime.now();
+      final now = DateTime.now();
       final symbol = _currencySymbol;
-      final hour   = prefs.getInt('notif_hour')   ?? 9;
+      final hour = prefs.getInt('notif_hour') ?? 9;
       final minute = prefs.getInt('notif_minute') ?? 0;
 
-      final transactions =
-      await _txRepo.getTransactionsByMonth(now.month, now.year);
-      final budget =
-      await _budgetRepo.getBudgetByMonth(now.month, now.year);
-      final carryover =
-      await _txRepo.getCarryover(now.month, now.year);
+      final transactions = await _txRepo.getTransactionsByMonth(now.month, now.year);
+      final budget = await _budgetRepo.getBudgetByMonth(now.month, now.year);
+      final carryover = await _txRepo.getCarryover(now.month, now.year);
 
       double income = 0, expense = 0;
       for (final tx in transactions) {
-        if (tx.type.name == 'income')  income  += tx.amount;
+        if (tx.type.name == 'income') income += tx.amount;
         if (tx.type.name == 'expense') expense += tx.amount;
       }
 
-      final balance     = carryover + income - expense;
+      final balance = carryover + income - expense;
       final budgetLimit = budget?.limit ?? 0;
 
-      await NotificationService.instance.scheduleDailyNotification(
-        balance:        balance,
-        totalExpense:   expense,
-        budgetLimit:    budgetLimit,
+      await NotificationService.instance.scheduleMorningNotification(
+        t: _langProvider.t,
+        balance: balance,
+        totalExpense: expense,
+        budgetLimit: budgetLimit,
         currencySymbol: symbol,
-        hour:           hour,
-        minute:         minute,
+        hour: hour,
+        minute: minute,
+      );
+
+      final eveningHour = prefs.getInt('evening_notif_hour') ?? 20;
+      final eveningMinute = prefs.getInt('evening_notif_minute') ?? 30;
+      await NotificationService.instance.scheduleEveningReminder(
+        t: _langProvider.t,
+        hour: eveningHour,
+        minute: eveningMinute,
       );
     } catch (e) {
       debugPrint('Notification schedule error: $e');
     }
   }
-
   String get _currencySymbol {
     return AppConstants.currencies.firstWhere(
           (c) => c['code'] == _currencyCode,

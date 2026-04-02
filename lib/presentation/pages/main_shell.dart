@@ -11,6 +11,8 @@ import 'home_page.dart';
 import 'stats_page.dart';
 import 'savings_page.dart';
 import 'settings_page.dart';
+import 'shopping_page.dart';
+import '../blocs/shopping/shopping_bloc.dart';
 
 class MainShell extends StatefulWidget {
   final bool isDark;
@@ -53,6 +55,10 @@ class _MainShellState extends State<MainShell> {
         ),
         child: SavingsPage(currencySymbol: widget.currencySymbol),
       ),
+      BlocProvider.value(
+        value: context.read<ShoppingBloc>(),
+        child: const ShoppingPage(),
+      ),
       SettingsPage(
         isDark: widget.isDark,
         currency: widget.currency,
@@ -71,6 +77,7 @@ class _MainShellState extends State<MainShell> {
       _NavItem(icon: Iconsax.home,       activeIcon: Iconsax.home_2,    label: t.home),
       _NavItem(icon: Iconsax.chart_2,    activeIcon: Iconsax.chart_21,  label: t.stats),
       _NavItem(icon: Iconsax.coin,       activeIcon: Iconsax.coin_1,    label: t.savingsGoals),
+      _NavItem(icon: Iconsax.shopping_cart, activeIcon: Iconsax.shopping_bag, label: t.shopping),
       _NavItem(icon: Iconsax.setting_2,  activeIcon: Iconsax.setting,   label: t.settings),
     ];
 
