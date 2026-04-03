@@ -490,6 +490,20 @@ class _SavingCardState extends State<_SavingCard>
                         '/ ${CurrencyFormatter.formatCompact(s.target, widget.currencySymbol)}',
                         style: TextStyle(fontSize: 12, color: Colors.grey[500]),
                       ),
+                      if (!s.isCompleted) ...[
+                        const SizedBox(height: 4),
+                        Row(children: [
+                          Icon(Iconsax.arrow_down, size: 11,
+                              color: AppColors.expense.withValues(alpha: 0.7)),
+                          const SizedBox(width: 3),
+                          Text(
+                            '${CurrencyFormatter.formatCompact(s.target - s.saved, widget.currencySymbol)} qoldi',
+                            style: TextStyle(
+                                fontSize: 11, fontWeight: FontWeight.w600,
+                                color: AppColors.expense.withValues(alpha: 0.8)),
+                          ),
+                        ]),
+                      ],
                     ]),
                     Row(children: [
                       Text(
